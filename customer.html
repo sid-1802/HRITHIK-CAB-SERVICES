@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Panel | Hrithik Cab Services</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img class="logo-badge" src="https://kommodo.ai/i/TV6Tgqh5XAHTZ5oA1Nqf" alt="Hrithik Cab Services logo" />
+        <div>
+          <h1>Hrithik Cab Services</h1>
+          <p>Booking and support made simple.</p>
+        </div>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="admin.html">Admin Panel</a>
+        <a href="billing.html">Billing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Customer</p>
+        <h2>Book rides and review your travel status.</h2>
+        <p>This page gives customers a clear place to manage bookings and support requests.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="cards-grid">
+          <article class="card">
+            <h3>Book a Ride</h3>
+            <p>Choose your pickup, destination, vehicle, and travel time.</p>
+          </article>
+          <article class="card">
+            <h3>My Bookings</h3>
+            <p>See ride history, live status, and booking updates.</p>
+          </article>
+          <article class="card">
+            <h3>Support</h3>
+            <p>Contact our team for changes, issues, or ride-related help.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container booking-panel">
+        <div class="booking-panel-copy">
+          <p class="eyebrow">Submit booking</p>
+          <h2>Send your ride request to admin.</h2>
+          <p>Fill the form below and your request will appear in the admin bookings list.</p>
+        </div>
+
+        <form id="bookingForm" class="booking-form">
+          <input type="text" name="name" placeholder="Your name" required />
+          <input type="tel" name="phone" placeholder="Your phone number" required />
+          <input type="text" name="pickup" placeholder="Pickup location" required />
+          <input type="text" name="destination" placeholder="Destination" required />
+          <select name="service">
+            <option value="General booking">General booking</option>
+            <option value="Local City Ride">Local City Ride</option>
+            <option value="Airport Transfer">Airport Transfer</option>
+            <option value="Outstation Trip">Outstation Trip</option>
+            <option value="Hourly Rental">Hourly Rental</option>
+          </select>
+          <div class="modal-actions">
+            <button type="submit" class="button button-primary">Send booking</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <div id="bookingToast" class="booking-toast" role="status" aria-live="polite" hidden></div>
+  </main>
+  <script src="script.js"></script>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Hrithik Cab Services.</p>
+      <p>Dedicated customer page.</p>
+    </div>
+  </footer>
+</body>
+</html>

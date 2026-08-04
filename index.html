@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hrithik Cab Services</title>
+  <meta name="description" content="Hrithik Cab Services offers dedicated pages for services, admin, customer, billing, and contact." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img class="logo-badge" src="https://kommodo.ai/i/TV6Tgqh5XAHTZ5oA1Nqf" alt="Hrithik Cab Services logo" />
+        <div>
+          <h1>Hrithik Cab Services</h1>
+          <p>Modern cab service portal with dedicated pages.</p>
+        </div>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html" class="active">Home</a>
+        <a href="services.html">Services</a>
+        <a href="admin.html">Admin Panel</a>
+        <a href="billing.html">Billing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="hero">
+      <div class="container hero-content">
+        <div>
+          <p class="eyebrow">For customers</p>
+          <h2>Book reliable cab service with comfort and ease.</h2>
+          <p>Choose from a variety of rides designed for city travel, airport transfers, family trips, and business needs.</p>
+          <div class="hero-actions">
+            <a href="#bookingPanel" class="button button-primary">Book a ride</a>
+            <a href="#" class="button button-secondary whatsapp-link">WhatsApp us</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <h3>Why customers choose us</h3>
+          <ul>
+            <li>Safe and punctual rides</li>
+            <li>Clean vehicles and friendly drivers</li>
+            <li>Transparent starting prices</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-title">
+          <p class="eyebrow">Our services</p>
+          <h2>Explore the services I provide</h2>
+          <p>Every ride is planned around comfort, reliability, and fair pricing.</p>
+        </div>
+
+        <div class="service-grid" data-home-services></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-title">
+          <p class="eyebrow">Available cars</p>
+          <h2>Choose a vehicle that fits your trip</h2>
+          <p>From compact city rides to spacious family travel, we have options ready for every journey.</p>
+        </div>
+
+        <div class="service-grid">
+          <article class="service-card">
+            <img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=900&q=80" alt="Sedan car" />
+            <div class="service-content">
+              <h3>Sedan</h3>
+              <p>Comfortable and efficient for airport transfers and business travel.</p>
+              <div class="service-footer">
+                <a href="#bookingPanel" class="small-link">Book now</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="service-card">
+            <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=900&q=80" alt="SUV car" />
+            <div class="service-content">
+              <h3>SUV</h3>
+              <p>Spacious seating for family trips, luggage, and long-distance rides.</p>
+              <div class="service-footer">
+                <a href="#bookingPanel" class="small-link">Book now</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="service-card">
+            <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80" alt="Tempo traveller" />
+            <div class="service-content">
+              <h3>Tempo Traveller</h3>
+              <p>Ideal for group travel, tours, and larger family groups.</p>
+              <div class="service-footer">
+                <a href="#bookingPanel" class="small-link">Book now</a>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="section booking-section" id="bookingPanel">
+    <div class="container">
+      <div class="booking-panel">
+        <div class="booking-panel-copy">
+          <p class="eyebrow">Booking panel</p>
+          <h2>Save your booking details here</h2>
+          <p>Fill in your ride details and save them on this page. You can call anytime or remove the booking if you change your mind.</p>
+        </div>
+
+        <form id="bookingForm" class="booking-form">
+          <input type="text" name="name" placeholder="Your name" required />
+          <input type="tel" name="phone" placeholder="Your phone number" />
+          <input type="text" name="pickup" placeholder="Pickup location" required />
+          <input type="text" name="destination" placeholder="Destination" required />
+          <select name="service">
+            <option value="General booking">General booking</option>
+            <option value="Local City Ride">Local City Ride</option>
+            <option value="Airport Transfer">Airport Transfer</option>
+            <option value="Outstation Trip">Outstation Trip</option>
+            <option value="Hourly Rental">Hourly Rental</option>
+          </select>
+          <div class="modal-actions">
+            <button type="button" class="button secondary-btn" id="clearBookingForm">Clear</button>
+            <button type="submit" class="button button-primary">Save booking</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+  <div id="bookingToast" class="booking-toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="script.js"></script>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Hrithik Cab Services. All rights reserved.</p>
+      <p>Phone: <span data-phone-display>+91 98765 43210</span> | Email: <a href="mailto:info@hrithikcabservices.com" data-email-href data-email-display>info@hrithikcabservices.com</a></p>
+      <p>Built as a simple static multi-page site.</p>
+    </div>
+  </footer>
+</body>
+</html>

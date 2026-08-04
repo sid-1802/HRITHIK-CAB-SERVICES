@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Services | Hrithik Cab Services</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img class="logo-badge" src="https://kommodo.ai/i/TV6Tgqh5XAHTZ5oA1Nqf" alt="Hrithik Cab Services logo" />
+        <div>
+          <h1>Hrithik Cab Services</h1>
+          <p>Reliable rides for every journey.</p>
+        </div>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="services.html" class="active">Services</a>
+        <a href="admin.html">Admin Panel</a>
+        <a href="billing.html">Billing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Services</p>
+        <h2>Manage the services you provide.</h2>
+        <p>Add new services, edit existing ones, and remove old ones. Changes will appear on the home page automatically.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="card service-manager-card">
+          <div class="service-manager-header">
+            <h3>Add or edit a car/service</h3>
+            <button type="button" class="button secondary-btn" id="addServiceBtn">Add new</button>
+          </div>
+          <form id="serviceForm" class="service-form">
+            <input type="text" id="serviceTitle" placeholder="Service name" required />
+            <textarea id="serviceDescription" rows="3" placeholder="Service description" required></textarea>
+            <input type="text" id="servicePrice" placeholder="Starting price" required />
+            <input type="url" id="serviceImage" placeholder="Image URL" required />
+            <div class="modal-actions">
+              <button type="button" class="button secondary-btn" id="cancelServiceEdit">Cancel</button>
+              <button type="submit" class="button button-primary">Save service</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="service-list-section">
+          <h3>Current services</h3>
+          <div id="servicesList" class="service-grid"></div>
+        </div>
+
+        <div class="vehicle-upload-section">
+          <h3>Upload Vehicles</h3>
+          <div class="card vehicle-upload-card">
+            <form id="vehicleUploadForm" class="service-form">
+              <input type="text" id="vehicleName" placeholder="Vehicle name (e.g., SUV)" required />
+              <textarea id="vehicleDescription" rows="2" placeholder="Short description (optional)"></textarea>
+              <input type="url" id="vehicleImage" placeholder="Image URL (required)" required />
+              <div class="modal-actions">
+                <button type="submit" class="button button-primary">Upload vehicle</button>
+              </div>
+            </form>
+          </div>
+
+          <h4>Your uploaded vehicles</h4>
+          <div id="vehiclesList" class="service-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="bookingToast" class="booking-toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="script.js"></script>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Hrithik Cab Services.</p>
+      <p>Dedicated service page.</p>
+    </div>
+  </footer>
+</body>
+</html>

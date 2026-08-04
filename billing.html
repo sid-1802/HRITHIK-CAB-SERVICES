@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billing | Hrithik Cab Services</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img class="logo-badge" src="https://kommodo.ai/i/TV6Tgqh5XAHTZ5oA1Nqf" alt="Hrithik Cab Services logo" />
+        <div>
+          <h1>Hrithik Cab Services</h1>
+          <p>Billing dashboard.</p>
+        </div>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="admin.html">Admin Panel</a>
+        <a href="billing.html" class="active">Billing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Billing</p>
+        <h2>Track payments, invoices, and revenue.</h2>
+        <p>Everything related to billing is now accessible from a separate page.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="cards-grid">
+          <article class="card">
+            <h3>Invoice Tracker</h3>
+            <ul class="billing-list">
+              <li>INV-1024 <span>Paid</span></li>
+              <li>INV-1025 <span>Pending</span></li>
+              <li>INV-1026 <span>Due</span></li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Revenue Summary</h3>
+            <p>Monthly revenue: ₹72,500</p>
+            <p>Outstanding: ₹14,200</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container billing-section">
+        <article class="card billing-form-card">
+          <h3>Create a Bill</h3>
+          <form id="invoiceForm">
+            <div class="grid-two">
+              <label>
+                Invoice date
+                <input type="date" id="invoiceDate" name="invoiceDate" />
+              </label>
+              <label>
+                Customer name
+                <input type="text" id="customerName" name="customerName" placeholder="Customer name" />
+              </label>
+              <label>
+                Phone number
+                <input type="tel" id="customerPhone" name="customerPhone" placeholder="+919876543210" />
+              </label>
+              <label>
+                Pickup location
+                <input type="text" id="pickupLocation" name="pickupLocation" placeholder="Pickup location" />
+              </label>
+              <label>
+                Destination location
+                <input type="text" id="destinationLocation" name="destinationLocation" placeholder="Destination location" />
+              </label>
+              <label>
+                Vehicle name
+                <input type="text" id="vehicleName" name="vehicleName" placeholder="Cab / vehicle name" />
+              </label>
+              <label>
+                Vehicle number
+                <input type="text" id="vehicleNumber" name="vehicleNumber" placeholder="Vehicle number" />
+              </label>
+            </div>
+
+            <div id="invoiceItems" class="invoice-items">
+              <div class="invoice-item-row">
+                <input type="text" name="itemName" placeholder="Item description" value="Ride fare" />
+                <input type="number" name="itemPrice" placeholder="Rate" min="0" value="0" step="0.01" />
+                <button type="button" class="remove-item-btn" aria-label="Remove item">×</button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <button type="button" class="button button-secondary" id="addInvoiceItem">Add item</button>
+              <button type="button" class="button button-primary" id="generateInvoiceBtn">Generate bill</button>
+              <button type="button" class="button secondary-btn" id="saveInvoiceBtn">Save invoice</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="card billing-preview-card">
+          <h3>Invoice Preview</h3>
+          <div id="invoicePreview" class="invoice-preview empty-state">
+            Generate a bill to review it here.
+          </div>
+          <div class="invoice-actions" id="invoiceActions" hidden>
+            <button type="button" class="button secondary-btn" id="sendWhatsappBtn">Send via WhatsApp</button>
+            <button type="button" class="button secondary-btn" id="sharePdfBtn">Send PDF</button>
+            <button type="button" class="button button-primary" id="printInvoiceBtn">Print invoice</button>
+          </div>
+        </article>
+        <article class="card billing-preview-card">
+          <h3>Saved Invoices</h3>
+          <div id="savedInvoicesList" class="saved-invoices-list">
+            <div class="empty-state">No invoices saved yet.</div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Hrithik Cab Services.</p>
+      <p>Phone: <span data-phone-display>+91 98765 43210</span> | Email: <a href="mailto:info@hrithikcabservices.com" data-email-href data-email-display>info@hrithikcabservices.com</a></p>
+      <p>Dedicated billing page.</p>
+    </div>
+  </footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

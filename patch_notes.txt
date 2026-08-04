@@ -1,0 +1,5 @@
+Patch: Added vehicle uploads section and supporting JS/CSS.
+Files changed:
+- services.html: added vehicle upload form and vehicles list
+- script.js: added VEHICLES_KEY, getVehicles/saveVehicles, renderVehicles, handlers
+- styles.css: small styles for vehicle upload card and list

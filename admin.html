@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel | Hrithik Cab Services</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img class="logo-badge" src="https://kommodo.ai/i/TV6Tgqh5XAHTZ5oA1Nqf" alt="Hrithik Cab Services logo" />
+        <div>
+          <h1>Hrithik Cab Services</h1>
+          <p>Operations control center.</p>
+        </div>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="admin.html" class="active">Admin Panel</a>
+        <a href="billing.html">Billing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Admin</p>
+        <h2>Manage bookings, drivers, and settings.</h2>
+        <p>This dedicated page keeps all admin operations organized in one place.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="card admin-settings-card">
+          <h3>Booking Phone Number</h3>
+          <p>Update the phone number used when customers click “Book a ride”.</p>
+          <div class="admin-phone-row">
+            <input id="admin-phone-input" type="tel" placeholder="Enter phone number" />
+            <button id="save-phone-btn" type="button">Save</button>
+            <button id="reset-phone-btn" type="button" class="secondary-btn">Reset</button>
+          </div>
+          <p id="phone-status" class="status-text">Current number: +91 98765 43210</p>
+        </div>
+
+        <div class="card admin-settings-card">
+          <h3>WhatsApp Number</h3>
+          <p>Update the WhatsApp number used when customers click the WhatsApp button.</p>
+          <div class="admin-phone-row">
+            <input id="admin-whatsapp-input" type="tel" placeholder="Enter WhatsApp number" />
+            <button id="save-whatsapp-btn" type="button">Save</button>
+            <button id="reset-whatsapp-btn" type="button" class="secondary-btn">Reset</button>
+          </div>
+          <p id="whatsapp-status" class="status-text">Current WhatsApp: +91 98765 43210</p>
+        </div>
+
+        <div class="card admin-settings-card">
+          <h3>Support Email</h3>
+          <p>Update the email address used across contact pages, billing, and invoices.</p>
+          <div class="admin-phone-row">
+            <input id="admin-email-input" type="email" placeholder="info@hrithikcabservices.com" />
+            <button id="save-email-btn" type="button">Save</button>
+            <button id="reset-email-btn" type="button" class="secondary-btn">Reset</button>
+          </div>
+          <p id="email-status" class="status-text">Current email: info@hrithikcabservices.com</p>
+        </div>
+
+        <div class="card admin-settings-card">
+          <h3>Invoice Address</h3>
+          <p>Update the address shown on generated invoices and PDFs.</p>
+          <div class="admin-phone-row">
+            <input id="admin-invoice-address-input" type="text" placeholder="123, Main Street, City Name, State" />
+            <button id="save-invoice-address-btn" type="button">Save</button>
+            <button id="reset-invoice-address-btn" type="button" class="secondary-btn">Reset</button>
+          </div>
+          <p id="invoice-address-status" class="status-text">Current invoice address: 123, Main Street, City Name, State</p>
+        </div>
+
+        <div class="card admin-settings-card">
+          <h3>Logo URL</h3>
+          <p>Paste a PNG, JPG, or WebP logo link to show it in the header.</p>
+          <div class="admin-phone-row">
+            <input id="admin-logo-input" type="url" placeholder="https://example.com/logo.png" />
+            <button id="save-logo-btn" type="button">Save</button>
+            <button id="reset-logo-btn" type="button" class="secondary-btn">Reset</button>
+          </div>
+          <p id="logo-status" class="status-text">Current logo URL: https://via.placeholder.com/120x120.png?text=LOGO</p>
+        </div>
+
+        <div class="card admin-settings-card">
+          <h3>Saved bookings</h3>
+          <p>All customer booking requests saved from the home page will appear here.</p>
+          <div id="savedBookingsList" class="saved-bookings-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Hrithik Cab Services.</p>
+      <p>Dedicated admin page.</p>
+    </div>
+  </footer>
+</body>
+</html>
