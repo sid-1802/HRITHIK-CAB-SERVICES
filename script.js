@@ -63,7 +63,7 @@
   let remoteInvoices = null;
   let remoteSettings = null;
 
-  function initFirebase() {
+  async function initFirebase() {
     if (!window.firebase || !window.firebase.firestore) {
       console.warn('Firebase SDK not loaded. Shared sync is disabled.');
       showToast('Firebase SDK not loaded. Sync disabled.');
@@ -78,8 +78,20 @@
     }
 
     try {
-      firebase.initializeApp(FIREBASE_CONFIG);
+      if (!firebase.apps.length) {
+        firebase.initializeApp(FIREBASE_CONFIG);
+      }
       db = firebase.firestore();
+
+      if (firebase.auth) {
+        try {
+          await firebase.auth().signInAnonymously();
+          console.info('Firebase anonymous auth succeeded.');
+        } catch (authError) {
+          console.warn('Firebase anonymous auth failed; continuing without auth:', authError);
+        }
+      }
+
       console.info('Firebase initialized. Shared data sync enabled.');
       showToast('Firebase sync enabled. Changes will sync across devices.');
     } catch (error) {
@@ -271,6 +283,13 @@
     } catch (error) {
       console.error('Unable to load shared invoices from Firebase:', error);
     }
+  }
+
+  function normalizeRemoteData(value) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value;
   }
 
   function normalizePhone(value) {
@@ -1025,7 +1044,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
-    initFirebase();
+    await initFirebase();
     const phone = getPhoneNumber();
     const whatsapp = getWhatsAppNumber();
     const logoUrl = getLogoUrl();
