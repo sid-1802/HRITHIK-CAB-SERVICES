@@ -57,16 +57,23 @@
   const FIREBASE_COLLECTION = 'sharedData';
 
   let db = null;
+  let remoteServices = null;
+  let remoteVehicles = null;
+  let remoteBookings = null;
+  let remoteInvoices = null;
+  let remoteSettings = null;
 
   function initFirebase() {
     if (!window.firebase || !window.firebase.firestore) {
       console.warn('Firebase SDK not loaded. Shared sync is disabled.');
+      showToast('Firebase SDK not loaded. Sync disabled.');
       return;
     }
 
     const missingConfig = Object.values(FIREBASE_CONFIG).some((value) => value.includes('YOUR_'));
     if (missingConfig) {
       console.warn('Firebase config is not configured. Shared sync is disabled until Firebase credentials are added.');
+      showToast('Firebase config missing. Sync disabled.');
       return;
     }
 
@@ -74,8 +81,10 @@
       firebase.initializeApp(FIREBASE_CONFIG);
       db = firebase.firestore();
       console.info('Firebase initialized. Shared data sync enabled.');
+      showToast('Firebase sync enabled. Changes will sync across devices.');
     } catch (error) {
       console.error('Failed to initialize Firebase:', error);
+      showToast('Firebase failed to initialize. Check console.');
       db = null;
     }
   }
@@ -119,8 +128,8 @@
       if (!doc.exists) return;
 
       const data = doc.data() || {};
-      if (Array.isArray(data.items) && data.items.length) {
-        localStorage.setItem(SERVICES_KEY, JSON.stringify(data.items));
+      if (Array.isArray(data.items)) {
+        remoteServices = data.items;
         renderServices();
         renderHomeServices();
       }
@@ -137,8 +146,8 @@
       if (!doc.exists) return;
 
       const data = doc.data() || {};
-      if (Array.isArray(data.items) && data.items.length) {
-        localStorage.setItem(VEHICLES_KEY, JSON.stringify(data.items));
+      if (Array.isArray(data.items)) {
+        remoteVehicles = data.items;
         renderVehicles();
       }
     } catch (error) {
@@ -171,7 +180,7 @@
         if (!doc.exists) return;
         const data = doc.data() || {};
         if (Array.isArray(data.items)) {
-          localStorage.setItem(SERVICES_KEY, JSON.stringify(data.items));
+          remoteServices = data.items;
           renderServices();
           renderHomeServices();
         }
@@ -188,7 +197,7 @@
         if (!doc.exists) return;
         const data = doc.data() || {};
         if (Array.isArray(data.items)) {
-          localStorage.setItem(VEHICLES_KEY, JSON.stringify(data.items));
+          remoteVehicles = data.items;
           renderVehicles();
         }
       }, (error) => {
@@ -196,9 +205,72 @@
       });
   }
 
-  async function normalizeRemoteData(value) {
-    if (!Array.isArray(value)) return [];
-    return value;
+  function listenToSharedBookings() {
+    if (!isFirebaseReady()) return;
+
+    db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_BOOKINGS)
+      .onSnapshot((doc) => {
+        if (!doc.exists) {
+          remoteBookings = [];
+          renderBookings();
+          return;
+        }
+        const data = doc.data() || {};
+        remoteBookings = normalizeRemoteData(data.items);
+        renderBookings();
+      }, (error) => {
+        console.error('Shared bookings listener error:', error);
+      });
+  }
+
+  function listenToSharedInvoices() {
+    if (!isFirebaseReady()) return;
+
+    db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_INVOICES)
+      .onSnapshot((doc) => {
+        if (!doc.exists) {
+          remoteInvoices = [];
+          renderInvoices();
+          return;
+        }
+        const data = doc.data() || {};
+        remoteInvoices = normalizeRemoteData(data.items);
+        renderInvoices();
+      }, (error) => {
+        console.error('Shared invoices listener error:', error);
+      });
+  }
+
+  async function loadSharedBookings() {
+    if (!isFirebaseReady()) return;
+
+    try {
+      const doc = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_BOOKINGS).get();
+      if (!doc.exists) {
+        remoteBookings = [];
+        return;
+      }
+
+      remoteBookings = normalizeRemoteData(doc.data().items);
+    } catch (error) {
+      console.error('Unable to load shared bookings from Firebase:', error);
+    }
+  }
+
+  async function loadSharedInvoices() {
+    if (!isFirebaseReady()) return;
+
+    try {
+      const doc = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_INVOICES).get();
+      if (!doc.exists) {
+        remoteInvoices = [];
+        return;
+      }
+
+      remoteInvoices = normalizeRemoteData(doc.data().items);
+    } catch (error) {
+      console.error('Unable to load shared invoices from Firebase:', error);
+    }
   }
 
   function normalizePhone(value) {
@@ -535,25 +607,27 @@
   }
 
   async function getInvoices() {
+    if (remoteInvoices !== null) {
+      return remoteInvoices;
+    }
+
     if (isFirebaseReady()) {
       try {
         const snapshot = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_INVOICES).get();
         if (snapshot.exists) {
-          return normalizeRemoteData(snapshot.data().items);
+          remoteInvoices = normalizeRemoteData(snapshot.data().items);
+          return remoteInvoices;
         }
       } catch (error) {
         console.error('Unable to load invoices from Firebase:', error);
       }
     }
 
-    try {
-      return JSON.parse(localStorage.getItem(INVOICES_KEY) || '[]');
-    } catch (parseError) {
-      return [];
-    }
+    return [];
   }
 
   async function saveInvoices(invoices) {
+    remoteInvoices = invoices;
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_INVOICES).set({ items: invoices }, { merge: true });
@@ -562,7 +636,6 @@
       }
     }
 
-    localStorage.setItem(INVOICES_KEY, JSON.stringify(invoices));
     renderInvoices();
   }
 
@@ -681,25 +754,27 @@
   }
 
   async function getBookings() {
+    if (remoteBookings !== null) {
+      return remoteBookings;
+    }
+
     if (isFirebaseReady()) {
       try {
         const snapshot = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_BOOKINGS).get();
         if (snapshot.exists) {
-          return normalizeRemoteData(snapshot.data().items);
+          remoteBookings = normalizeRemoteData(snapshot.data().items);
+          return remoteBookings;
         }
       } catch (error) {
         console.error('Unable to load bookings from Firebase:', error);
       }
     }
 
-    try {
-      return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]');
-    } catch (error) {
-      return [];
-    }
+    return [];
   }
 
   async function saveBookings(bookings) {
+    remoteBookings = bookings;
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_BOOKINGS).set({ items: bookings }, { merge: true });
@@ -708,20 +783,19 @@
       }
     }
 
-    localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
     renderBookings();
   }
 
   function getServices() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(SERVICES_KEY) || 'null');
-      return Array.isArray(saved) && saved.length ? saved : DEFAULT_SERVICES;
-    } catch (error) {
-      return DEFAULT_SERVICES;
+    if (remoteServices !== null) {
+      return remoteServices;
     }
+
+    return DEFAULT_SERVICES;
   }
 
   async function saveServices(services) {
+    remoteServices = services;
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SERVICES).set({ items: services }, { merge: true });
@@ -730,7 +804,6 @@
       }
     }
 
-    localStorage.setItem(SERVICES_KEY, JSON.stringify(services));
     renderServices();
     renderHomeServices();
   }
@@ -740,15 +813,15 @@
   const DEFAULT_VEHICLES = [];
 
   function getVehicles() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(VEHICLES_KEY) || 'null');
-      return Array.isArray(saved) && saved.length ? saved : DEFAULT_VEHICLES;
-    } catch (error) {
-      return DEFAULT_VEHICLES;
+    if (remoteVehicles !== null) {
+      return remoteVehicles;
     }
+
+    return DEFAULT_VEHICLES;
   }
 
   async function saveVehicles(vehicles) {
+    remoteVehicles = vehicles;
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_VEHICLES).set({ items: vehicles }, { merge: true });
@@ -757,7 +830,6 @@
       }
     }
 
-    localStorage.setItem(VEHICLES_KEY, JSON.stringify(vehicles));
     renderVehicles();
   }
 
@@ -952,7 +1024,7 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     initFirebase();
     const phone = getPhoneNumber();
     const whatsapp = getWhatsAppNumber();
@@ -961,20 +1033,27 @@
     updateWhatsAppLinks(whatsapp);
     updateLogo(logoUrl);
 
-    renderInvoices();
-    renderServices();
-    renderHomeServices();
-    renderVehicles();
-
     if (isFirebaseReady()) {
       listenToSharedSettings();
       listenToSharedServices();
       listenToSharedVehicles();
-      loadSharedSettings().catch((error) => console.error(error));
-      loadSharedServices().catch((error) => console.error(error));
-      loadSharedVehicles().catch((error) => console.error(error));
-      renderBookings().catch((error) => console.error(error));
+      listenToSharedBookings();
+      listenToSharedInvoices();
+      await loadSharedSettings();
+      await loadSharedServices();
+      await loadSharedVehicles();
+      await loadSharedBookings();
+      await loadSharedInvoices();
+      renderServices();
+      renderHomeServices();
+      renderVehicles();
+      await renderBookings();
+      await renderInvoices();
     } else {
+      renderInvoices();
+      renderServices();
+      renderHomeServices();
+      renderVehicles();
       renderBookings().catch((error) => console.error(error));
     }
 
@@ -1088,7 +1167,7 @@
 
     const serviceForm = document.getElementById('serviceForm');
     if (serviceForm) {
-      serviceForm.addEventListener('submit', (event) => {
+      serviceForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const title = document.getElementById('serviceTitle').value.trim();
         const description = document.getElementById('serviceDescription').value.trim();
@@ -1111,7 +1190,7 @@
           showToast('Service added.');
         }
 
-        saveServices(services);
+        await saveServices(services);
         resetServiceForm();
       });
     }
