@@ -146,6 +146,56 @@
     }
   }
 
+  function listenToSharedSettings() {
+    if (!isFirebaseReady()) return;
+
+    db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SETTINGS)
+      .onSnapshot((doc) => {
+        if (!doc.exists) return;
+        const data = doc.data() || {};
+        if (data.phone) setPhoneNumber(data.phone);
+        if (data.whatsapp) setWhatsAppNumber(data.whatsapp);
+        if (data.logoUrl) setLogoUrl(data.logoUrl);
+        if (data.invoiceAddress) setInvoiceAddress(data.invoiceAddress);
+        if (data.email) setEmail(data.email);
+      }, (error) => {
+        console.error('Shared settings listener error:', error);
+      });
+  }
+
+  function listenToSharedServices() {
+    if (!isFirebaseReady()) return;
+
+    db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SERVICES)
+      .onSnapshot((doc) => {
+        if (!doc.exists) return;
+        const data = doc.data() || {};
+        if (Array.isArray(data.items)) {
+          localStorage.setItem(SERVICES_KEY, JSON.stringify(data.items));
+          renderServices();
+          renderHomeServices();
+        }
+      }, (error) => {
+        console.error('Shared services listener error:', error);
+      });
+  }
+
+  function listenToSharedVehicles() {
+    if (!isFirebaseReady()) return;
+
+    db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_VEHICLES)
+      .onSnapshot((doc) => {
+        if (!doc.exists) return;
+        const data = doc.data() || {};
+        if (Array.isArray(data.items)) {
+          localStorage.setItem(VEHICLES_KEY, JSON.stringify(data.items));
+          renderVehicles();
+        }
+      }, (error) => {
+        console.error('Shared vehicles listener error:', error);
+      });
+  }
+
   async function normalizeRemoteData(value) {
     if (!Array.isArray(value)) return [];
     return value;
@@ -917,12 +967,13 @@
     renderVehicles();
 
     if (isFirebaseReady()) {
-      Promise.all([
-        loadSharedSettings(),
-        loadSharedServices(),
-        loadSharedVehicles(),
-        renderBookings()
-      ]).catch((error) => console.error(error));
+      listenToSharedSettings();
+      listenToSharedServices();
+      listenToSharedVehicles();
+      loadSharedSettings().catch((error) => console.error(error));
+      loadSharedServices().catch((error) => console.error(error));
+      loadSharedVehicles().catch((error) => console.error(error));
+      renderBookings().catch((error) => console.error(error));
     } else {
       renderBookings().catch((error) => console.error(error));
     }
@@ -1065,6 +1116,27 @@
       });
     }
 
+    const vehicleUploadForm = document.getElementById('vehicleUploadForm');
+    if (vehicleUploadForm) {
+      vehicleUploadForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const name = document.getElementById('vehicleName').value.trim();
+        const description = document.getElementById('vehicleDescription').value.trim();
+        const image = document.getElementById('vehicleImage').value.trim();
+
+        if (!name || !image) {
+          showToast('Please enter a vehicle name and image URL.');
+          return;
+        }
+
+        const vehicles = getVehicles();
+        vehicles.push({ name, description, image });
+        await saveVehicles(vehicles);
+        vehicleUploadForm.reset();
+        showToast('Vehicle uploaded successfully.');
+      });
+    }
+
     const cancelServiceEditButton = document.getElementById('cancelServiceEdit');
     if (cancelServiceEditButton) {
       cancelServiceEditButton.addEventListener('click', resetServiceForm);
@@ -1094,6 +1166,22 @@
           services.splice(Number(deleteIndex), 1);
           saveServices(services);
           showToast('Service deleted.');
+        }
+      });
+    }
+
+    const vehiclesListElement = document.getElementById('vehiclesList');
+    if (vehiclesListElement) {
+      vehiclesListElement.addEventListener('click', async (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+
+        const deleteIndex = target.getAttribute('data-delete-vehicle');
+        if (deleteIndex !== null) {
+          const vehicles = getVehicles();
+          vehicles.splice(Number(deleteIndex), 1);
+          await saveVehicles(vehicles);
+          showToast('Vehicle removed.');
         }
       });
     }
