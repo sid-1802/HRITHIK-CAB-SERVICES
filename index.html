@@ -70,40 +70,7 @@
           <p>From compact city rides to spacious family travel, we have options ready for every journey.</p>
         </div>
 
-        <div class="service-grid">
-          <article class="service-card">
-            <img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=900&q=80" alt="Sedan car" />
-            <div class="service-content">
-              <h3>Sedan</h3>
-              <p>Comfortable and efficient for airport transfers and business travel.</p>
-              <div class="service-footer">
-                <a href="#bookingPanel" class="small-link">Book now</a>
-              </div>
-            </div>
-          </article>
-
-          <article class="service-card">
-            <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=900&q=80" alt="SUV car" />
-            <div class="service-content">
-              <h3>SUV</h3>
-              <p>Spacious seating for family trips, luggage, and long-distance rides.</p>
-              <div class="service-footer">
-                <a href="#bookingPanel" class="small-link">Book now</a>
-              </div>
-            </div>
-          </article>
-
-          <article class="service-card">
-            <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80" alt="Tempo traveller" />
-            <div class="service-content">
-              <h3>Tempo Traveller</h3>
-              <p>Ideal for group travel, tours, and larger family groups.</p>
-              <div class="service-footer">
-                <a href="#bookingPanel" class="small-link">Book now</a>
-              </div>
-            </div>
-          </article>
-        </div>
+        <div id="vehiclesList" class="service-grid"></div>
       </div>
     </section>
   </main>
@@ -141,6 +108,8 @@
 
   <div id="bookingToast" class="booking-toast" role="status" aria-live="polite" hidden></div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="script.js"></script>
   <footer class="site-footer">
     <div class="container footer-inner">

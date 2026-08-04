@@ -39,6 +39,118 @@
     }
   ];
 
+  const FIREBASE_CONFIG = {
+    apiKey: 'AIzaSyC8NsU1zKhlcWCyM5GnbJ34p4Z2t1q-RrY',
+    authDomain: 'hrithik-cabs.firebaseapp.com',
+    projectId: 'hrithik-cabs',
+    storageBucket: 'hrithik-cabs.firebasestorage.app',
+    messagingSenderId: '591069481752',
+    appId: '1:591069481752:web:dffb67cd1cf5f21f22ac6d',
+    measurementId: 'G-PSJ1XDQVK2'
+  };
+
+  const FIREBASE_DOC_SETTINGS = 'settings';
+  const FIREBASE_DOC_BOOKINGS = 'bookings';
+  const FIREBASE_DOC_INVOICES = 'invoices';
+  const FIREBASE_DOC_SERVICES = 'services';
+  const FIREBASE_DOC_VEHICLES = 'vehicles';
+  const FIREBASE_COLLECTION = 'sharedData';
+
+  let db = null;
+
+  function initFirebase() {
+    if (!window.firebase || !window.firebase.firestore) {
+      console.warn('Firebase SDK not loaded. Shared sync is disabled.');
+      return;
+    }
+
+    const missingConfig = Object.values(FIREBASE_CONFIG).some((value) => value.includes('YOUR_'));
+    if (missingConfig) {
+      console.warn('Firebase config is not configured. Shared sync is disabled until Firebase credentials are added.');
+      return;
+    }
+
+    try {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.firestore();
+      console.info('Firebase initialized. Shared data sync enabled.');
+    } catch (error) {
+      console.error('Failed to initialize Firebase:', error);
+      db = null;
+    }
+  }
+
+  function isFirebaseReady() {
+    return db !== null;
+  }
+
+  async function saveSharedSettings(settings) {
+    if (!isFirebaseReady()) return;
+    try {
+      await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SETTINGS).set(settings, { merge: true });
+    } catch (error) {
+      console.error('Unable to save shared settings to Firebase:', error);
+    }
+  }
+
+  async function loadSharedSettings() {
+    if (!isFirebaseReady()) return;
+
+    try {
+      const doc = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SETTINGS).get();
+      if (!doc.exists) return;
+
+      const data = doc.data() || {};
+      if (data.phone) setPhoneNumber(data.phone);
+      if (data.whatsapp) setWhatsAppNumber(data.whatsapp);
+      if (data.logoUrl) setLogoUrl(data.logoUrl);
+      if (data.invoiceAddress) setInvoiceAddress(data.invoiceAddress);
+      if (data.email) setEmail(data.email);
+    } catch (error) {
+      console.error('Unable to load shared settings from Firebase:', error);
+    }
+  }
+
+  async function loadSharedServices() {
+    if (!isFirebaseReady()) return;
+
+    try {
+      const doc = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SERVICES).get();
+      if (!doc.exists) return;
+
+      const data = doc.data() || {};
+      if (Array.isArray(data.items) && data.items.length) {
+        localStorage.setItem(SERVICES_KEY, JSON.stringify(data.items));
+        renderServices();
+        renderHomeServices();
+      }
+    } catch (error) {
+      console.error('Unable to load shared services from Firebase:', error);
+    }
+  }
+
+  async function loadSharedVehicles() {
+    if (!isFirebaseReady()) return;
+
+    try {
+      const doc = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_VEHICLES).get();
+      if (!doc.exists) return;
+
+      const data = doc.data() || {};
+      if (Array.isArray(data.items) && data.items.length) {
+        localStorage.setItem(VEHICLES_KEY, JSON.stringify(data.items));
+        renderVehicles();
+      }
+    } catch (error) {
+      console.error('Unable to load shared vehicles from Firebase:', error);
+    }
+  }
+
+  async function normalizeRemoteData(value) {
+    if (!Array.isArray(value)) return [];
+    return value;
+  }
+
   function normalizePhone(value) {
     const trimmed = (value || '').trim();
     if (!trimmed) return DEFAULT_PHONE;
@@ -373,31 +485,34 @@
   }
 
   async function getInvoices() {
-    try {
-      const response = await fetch('/api/invoices');
-      if (!response.ok) throw new Error('Failed to fetch invoices');
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
-    } catch (error) {
+    if (isFirebaseReady()) {
       try {
-        return JSON.parse(localStorage.getItem(INVOICES_KEY) || '[]');
-      } catch (parseError) {
-        return [];
+        const snapshot = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_INVOICES).get();
+        if (snapshot.exists) {
+          return normalizeRemoteData(snapshot.data().items);
+        }
+      } catch (error) {
+        console.error('Unable to load invoices from Firebase:', error);
       }
+    }
+
+    try {
+      return JSON.parse(localStorage.getItem(INVOICES_KEY) || '[]');
+    } catch (parseError) {
+      return [];
     }
   }
 
   async function saveInvoices(invoices) {
-    try {
-      await fetch('/api/invoices', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(invoices)
-      });
-    } catch (error) {
-      localStorage.setItem(INVOICES_KEY, JSON.stringify(invoices));
+    if (isFirebaseReady()) {
+      try {
+        await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_INVOICES).set({ items: invoices }, { merge: true });
+      } catch (error) {
+        console.error('Unable to save invoices to Firebase:', error);
+      }
     }
 
+    localStorage.setItem(INVOICES_KEY, JSON.stringify(invoices));
     renderInvoices();
   }
 
@@ -516,18 +631,15 @@
   }
 
   async function getBookings() {
-    try {
-      const response = await fetch('/api/bookings');
-      if (response.ok) {
-        const data = await response.json();
-        const bookings = Array.isArray(data) ? data : Array.isArray(data.bookings) ? data.bookings : [];
-        if (Array.isArray(bookings)) {
-          localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-          return bookings;
+    if (isFirebaseReady()) {
+      try {
+        const snapshot = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_BOOKINGS).get();
+        if (snapshot.exists) {
+          return normalizeRemoteData(snapshot.data().items);
         }
+      } catch (error) {
+        console.error('Unable to load bookings from Firebase:', error);
       }
-    } catch (error) {
-      // fallback to local storage when server is unavailable
     }
 
     try {
@@ -538,40 +650,16 @@
   }
 
   async function saveBookings(bookings) {
-    localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-    try {
-      const response = await fetch('/api/bookings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookings)
-      });
-      if (!response.ok) {
-        throw new Error('Failed to sync bookings');
+    if (isFirebaseReady()) {
+      try {
+        await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_BOOKINGS).set({ items: bookings }, { merge: true });
+      } catch (error) {
+        console.error('Unable to save bookings to Firebase:', error);
       }
-    } catch (error) {
-      console.warn('Unable to sync bookings to server.', error);
     }
-    await renderBookings();
-  }
 
-  async function postBooking(booking) {
-    try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(booking)
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data.bookings)) {
-          localStorage.setItem(BOOKINGS_KEY, JSON.stringify(data.bookings));
-          return data.bookings;
-        }
-      }
-    } catch (error) {
-      console.warn('Unable to post booking to server.', error);
-    }
-    return null;
+    localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+    renderBookings();
   }
 
   function getServices() {
@@ -583,7 +671,15 @@
     }
   }
 
-  function saveServices(services) {
+  async function saveServices(services) {
+    if (isFirebaseReady()) {
+      try {
+        await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SERVICES).set({ items: services }, { merge: true });
+      } catch (error) {
+        console.error('Unable to save services to Firebase:', error);
+      }
+    }
+
     localStorage.setItem(SERVICES_KEY, JSON.stringify(services));
     renderServices();
     renderHomeServices();
@@ -602,7 +698,15 @@
     }
   }
 
-  function saveVehicles(vehicles) {
+  async function saveVehicles(vehicles) {
+    if (isFirebaseReady()) {
+      try {
+        await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_VEHICLES).set({ items: vehicles }, { merge: true });
+      } catch (error) {
+        console.error('Unable to save vehicles to Firebase:', error);
+      }
+    }
+
     localStorage.setItem(VEHICLES_KEY, JSON.stringify(vehicles));
     renderVehicles();
   }
@@ -727,15 +831,9 @@
       destination: formData.get('destination') || '',
       service: formData.get('service') || 'General booking',
       confirmed: false,
-      createdAt: new Date().toLocaleString()
+      createdAt: new Date().toLocaleString(),
+      id: `${Date.now()}.${Math.random().toString(36).slice(2, 8)}`
     };
-
-    const serverBookings = await postBooking(booking);
-    if (serverBookings) {
-      await saveBookings(serverBookings);
-      showToast(`Saved ${booking.service} for ${booking.name}.`);
-      return;
-    }
 
     const bookings = await getBookings();
     bookings.unshift(booking);
@@ -805,17 +903,35 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    initFirebase();
     const phone = getPhoneNumber();
     const whatsapp = getWhatsAppNumber();
     const logoUrl = getLogoUrl();
     updatePhoneLinks(phone);
     updateWhatsAppLinks(whatsapp);
     updateLogo(logoUrl);
-    renderBookings();
+
     renderInvoices();
     renderServices();
     renderHomeServices();
     renderVehicles();
+
+    if (isFirebaseReady()) {
+      Promise.all([
+        loadSharedSettings(),
+        loadSharedServices(),
+        loadSharedVehicles(),
+        renderBookings()
+      ]).catch((error) => console.error(error));
+    } else {
+      renderBookings().catch((error) => console.error(error));
+    }
+
+    if (document.getElementById('savedBookingsList')) {
+      setInterval(() => {
+        renderBookings().catch((error) => console.error(error));
+      }, 10000);
+    }
 
     const bookingForm = document.getElementById('bookingForm');
     if (bookingForm) {
@@ -1045,6 +1161,13 @@
         if (status) {
           status.textContent = `Phone number updated to ${nextPhone}`;
         }
+        saveSharedSettings({
+          phone: nextPhone,
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: getLogoUrl(),
+          invoiceAddress: getInvoiceAddress(),
+          email: getEmail()
+        }).catch((error) => console.error(error));
       });
     }
 
@@ -1055,6 +1178,13 @@
         if (status) {
           status.textContent = `Phone number reset to ${nextPhone}`;
         }
+        saveSharedSettings({
+          phone: nextPhone,
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: getLogoUrl(),
+          invoiceAddress: getInvoiceAddress(),
+          email: getEmail()
+        }).catch((error) => console.error(error));
       });
     }
 
@@ -1076,6 +1206,13 @@
         if (whatsappStatus) {
           whatsappStatus.textContent = `Current WhatsApp: ${nextNumber}`;
         }
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: nextNumber,
+          logoUrl: getLogoUrl(),
+          invoiceAddress: getInvoiceAddress(),
+          email: getEmail()
+        }).catch((error) => console.error(error));
       });
     }
 
@@ -1086,6 +1223,13 @@
           emailStatus.textContent = `Current email: ${nextEmail}`;
         }
         showToast('Support email updated.');
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: getLogoUrl(),
+          invoiceAddress: getInvoiceAddress(),
+          email: nextEmail
+        }).catch((error) => console.error(error));
       });
     }
 
@@ -1096,6 +1240,13 @@
           invoiceAddressStatus.textContent = `Current invoice address: ${nextAddress}`;
         }
         showToast('Invoice address updated.');
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: getLogoUrl(),
+          invoiceAddress: nextAddress,
+          email: getEmail()
+        }).catch((error) => console.error(error));
       });
     }
 
@@ -1107,6 +1258,13 @@
           emailStatus.textContent = `Current email: ${nextEmail}`;
         }
         showToast('Support email reset.');
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: getLogoUrl(),
+          invoiceAddress: getInvoiceAddress(),
+          email: nextEmail
+        }).catch((error) => console.error(error));
       });
     }
 
@@ -1118,6 +1276,13 @@
           invoiceAddressStatus.textContent = `Current invoice address: ${nextAddress}`;
         }
         showToast('Invoice address reset.');
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: getLogoUrl(),
+          invoiceAddress: nextAddress,
+          email: getEmail()
+        }).catch((error) => console.error(error));
       });
     }
 
@@ -1144,6 +1309,13 @@
           logoStatus.textContent = `Current logo URL: ${nextLogo}`;
         }
         showToast('Logo updated.');
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: nextLogo,
+          invoiceAddress: getInvoiceAddress(),
+          email: getEmail()
+        }).catch((error) => console.error(error));
       });
     }
 
@@ -1155,6 +1327,13 @@
           logoStatus.textContent = `Current logo URL: ${nextLogo}`;
         }
         showToast('Logo reset.');
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: nextLogo,
+          invoiceAddress: getInvoiceAddress(),
+          email: getEmail()
+        }).catch((error) => console.error(error));
       });
     }
   });
