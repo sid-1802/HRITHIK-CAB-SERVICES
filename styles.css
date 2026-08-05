@@ -224,13 +224,89 @@ img { max-width: 100%; display: block; }
   display: flex;
   flex-direction: column;
 }
-.service-card img {
+.service-card > img,
+.service-card .service-media > img {
   width: 100%;
   height: 220px;
   object-fit: cover;
   object-position: center;
   display: block;
 }
+
+/* Ensure thumbnails remain small and are not targeted by the above rule */
+.vehicle-thumb {
+  width: 56px;
+  height: 40px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid rgba(15, 23, 42, 0.04);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+}
+
+/* vehicle thumbnails and full-image modal */
+.vehicle-thumbs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px 0 24px;
+  flex-wrap: wrap;
+}
+.vehicle-thumb {
+  width: 56px;
+  height: 40px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid rgba(15, 23, 42, 0.04);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+}
+
+/* modal overlay for viewing full image */
+.image-modal {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,6,23,0.6);
+  z-index: 2000;
+}
+.image-modal.open { display: flex; }
+.image-modal-inner {
+  max-width: 92vw;
+  max-height: 92vh;
+  background: transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-modal img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 18px 60px rgba(2,6,23,0.4);
+  background: #fff;
+}
+.image-modal-close {
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  background: #fff;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.2);
+}
+
 .service-content {
   padding: 24px;
   display: flex;

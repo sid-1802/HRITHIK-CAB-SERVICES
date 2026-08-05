@@ -975,8 +975,14 @@
     vehicles.forEach((vehicle, index) => {
       const card = document.createElement('article');
       card.className = 'service-card';
+      const primary = (vehicle.images && vehicle.images.length) ? vehicle.images[0] : (vehicle.image || '');
       card.innerHTML = `
-        <img src="${vehicle.image}" alt="${vehicle.name}" />
+        <div class="service-media">
+          <img src="${primary}" alt="${vehicle.name}" />
+          <div class="vehicle-thumbs">
+            ${ (vehicle.images && vehicle.images.length) ? vehicle.images.map((img, i) => `<img class="vehicle-thumb" data-vehicle-index="${index}" data-image-index="${i}" src="${img}" alt="${vehicle.name} thumbnail ${i+1}" />`).join('') : '' }
+          </div>
+        </div>
         <div class="service-content">
           <h3>${vehicle.name}</h3>
           <p>${vehicle.description || ''}</p>
@@ -984,12 +990,51 @@
             <a href="#bookingPanel" class="small-link">Book now</a>
           </div>
           <div class="service-card-actions">
+            <button type="button" class="edit-btn" data-edit-vehicle="${index}">Edit</button>
             <button type="button" class="delete-btn" data-delete-vehicle="${index}">Delete</button>
           </div>
         </div>
       `;
       list.appendChild(card);
     });
+  }
+
+  // helper: open modal to view full image
+  function openImageModal(src) {
+    let modal = document.getElementById('imageModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'imageModal';
+      modal.className = 'image-modal';
+      modal.innerHTML = `<div class="image-modal-inner"><button class="image-modal-close" aria-label="Close">×</button><img src="" alt="Vehicle image" /></div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target.classList.contains('image-modal-close')) {
+          modal.classList.remove('open');
+        }
+      });
+    }
+    const img = modal.querySelector('img');
+    img.src = src || '';
+    modal.classList.add('open');
+  }
+
+  function fillVehicleForm(vehicle, index) {
+    const nameEl = document.getElementById('vehicleName');
+    const descEl = document.getElementById('vehicleDescription');
+    const imagesEl = document.getElementById('vehicleImages');
+    const editIndexEl = document.getElementById('vehicleEditIndex');
+    if (nameEl) nameEl.value = vehicle.name || '';
+    if (descEl) descEl.value = vehicle.description || '';
+    if (imagesEl) imagesEl.value = (vehicle.images && vehicle.images.length) ? vehicle.images.join('\n') : (vehicle.image ? vehicle.image : '');
+    if (editIndexEl) editIndexEl.value = String(index);
+  }
+
+  function resetVehicleForm() {
+    const form = document.getElementById('vehicleUploadForm');
+    if (form) form.reset();
+    const editIndexEl = document.getElementById('vehicleEditIndex');
+    if (editIndexEl) editIndexEl.value = '';
   }
 
   function renderHomeServices() {
@@ -1349,19 +1394,32 @@
         event.preventDefault();
         const name = document.getElementById('vehicleName').value.trim();
         const description = document.getElementById('vehicleDescription').value.trim();
-        const image = document.getElementById('vehicleImage').value.trim();
+        const imagesRaw = document.getElementById('vehicleImages').value.trim();
+        const editIndex = document.getElementById('vehicleEditIndex').value;
+        const images = imagesRaw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
 
-        if (!name || !image) {
-          showToast('Please enter a vehicle name and image URL.');
+        if (!name || !images.length) {
+          showToast('Please enter a vehicle name and at least one image URL.');
           return;
         }
 
         const vehicles = getVehicles();
-        vehicles.push({ name, description, image });
+        const vehicleObj = { name, description, images };
+        if (editIndex) {
+          vehicles[Number(editIndex)] = vehicleObj;
+          showToast('Vehicle updated.');
+        } else {
+          vehicles.push(vehicleObj);
+          showToast('Vehicle uploaded successfully.');
+        }
+
         await saveVehicles(vehicles);
-        vehicleUploadForm.reset();
-        showToast('Vehicle uploaded successfully.');
+        resetVehicleForm();
       });
+
+      // wire cancel edit button
+      const cancelVehicleEdit = document.getElementById('cancelVehicleEdit');
+      if (cancelVehicleEdit) cancelVehicleEdit.addEventListener('click', resetVehicleForm);
     }
 
     const cancelServiceEditButton = document.getElementById('cancelServiceEdit');
@@ -1403,15 +1461,33 @@
         const target = event.target;
         if (!(target instanceof HTMLElement)) return;
 
-        const deleteIndex = target.getAttribute('data-delete-vehicle');
-        if (deleteIndex !== null) {
+          const editIndex = target.getAttribute('data-edit-vehicle');
+          if (editIndex !== null) {
           const vehicles = getVehicles();
-          vehicles.splice(Number(deleteIndex), 1);
-          await saveVehicles(vehicles);
-          showToast('Vehicle removed.');
-        }
-      });
-    }
+            fillVehicleForm(vehicles[Number(editIndex)], Number(editIndex));
+            return;
+          }
+
+          const deleteIndex = target.getAttribute('data-delete-vehicle');
+          if (deleteIndex !== null) {
+            const vehicles = getVehicles();
+            vehicles.splice(Number(deleteIndex), 1);
+            await saveVehicles(vehicles);
+            showToast('Vehicle removed.');
+            return;
+          }
+
+          const imgVehicleIndex = target.getAttribute('data-vehicle-index');
+          const imgIndex = target.getAttribute('data-image-index');
+          if (imgVehicleIndex !== null && imgIndex !== null) {
+            const vehicles = getVehicles();
+            const v = vehicles[Number(imgVehicleIndex)];
+            const imgUrl = (v && v.images && v.images.length) ? v.images[Number(imgIndex)] : (v.image || '');
+            if (imgUrl) openImageModal(imgUrl);
+            return;
+          }
+        });
+      }
 
     const bookingsList = document.getElementById('savedBookingsList');
     if (bookingsList) {
@@ -1663,4 +1739,8 @@
     isAdminAuthenticated,
     logoutAdmin
   };
+  // Expose global aliases so older or cached pages that call global functions still work
+  window.isAdminAuthenticated = isAdminAuthenticated;
+  window.logoutAdmin = logoutAdmin;
+  window.setAdminAuthenticated = setAdminAuthenticated;
 })();

@@ -65,9 +65,12 @@
             <form id="vehicleUploadForm" class="service-form">
               <input type="text" id="vehicleName" placeholder="Vehicle name (e.g., SUV)" required />
               <textarea id="vehicleDescription" rows="2" placeholder="Short description (optional)"></textarea>
-              <input type="url" id="vehicleImage" placeholder="Image URL (required)" required />
+              <label for="vehicleImages">Image URLs (one per line)</label>
+              <textarea id="vehicleImages" rows="3" placeholder="https://example.com/1.jpg\nhttps://example.com/2.jpg" required></textarea>
+              <input type="hidden" id="vehicleEditIndex" value="" />
               <div class="modal-actions">
-                <button type="submit" class="button button-primary">Upload vehicle</button>
+                <button type="button" class="button secondary-btn" id="cancelVehicleEdit">Cancel</button>
+                <button type="submit" class="button button-primary">Save vehicle</button>
               </div>
             </form>
           </div>
