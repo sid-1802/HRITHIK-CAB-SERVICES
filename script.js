@@ -622,7 +622,7 @@
     lines.push(`</tbody></table>`);
     lines.push(`<div class="invoice-summary"><p>Subtotal: ${formatCurrency(invoice.subtotal)}</p><p><strong>Total: ${formatCurrency(invoice.total)}</strong></p></div>`);
     lines.push(`<p class="invoice-note">Thank you for choosing Hrithik Cab Services.</p>`);
-    lines.push(`<p class="invoice-contact">Phone: +91 98765 43210 | Email: ${getEmail()}</p>`);
+    lines.push(`<p class="invoice-contact">Phone: ${getPhoneNumber()} | Email: ${getEmail()}</p>`);
     lines.push(`</div>`);
 
     preview.innerHTML = lines.join('');
@@ -713,7 +713,7 @@
     doc.text(`Total: ${formatCurrency(invoice.total)}`, 360, y);
     y += 24;
     doc.setFontSize(9);
-    doc.text(`Phone: +91 98765 43210 | Email: ${getEmail()}`, startX, y);
+    doc.text(`Phone: ${getPhoneNumber()} | Email: ${getEmail()}`, startX, y);
 
     return doc;
   }
