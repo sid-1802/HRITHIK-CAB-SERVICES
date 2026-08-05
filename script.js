@@ -194,12 +194,12 @@
       .onSnapshot((doc) => {
         if (!doc.exists) return;
         const data = doc.data() || {};
-        if (data.phone) setPhoneNumber(data.phone);
-        if (data.whatsapp) setWhatsAppNumber(data.whatsapp);
-        if (data.logoUrl) setLogoUrl(data.logoUrl);
-        if (data.invoiceAddress) setInvoiceAddress(data.invoiceAddress);
-        if (data.email) setEmail(data.email);
-        if (data.sealUrl) setSealUrl(data.sealUrl);
+        if (data.phone && data.phone !== getPhoneNumber()) setPhoneNumber(data.phone);
+        if (data.whatsapp && data.whatsapp !== getWhatsAppNumber()) setWhatsAppNumber(data.whatsapp);
+        if (data.logoUrl && data.logoUrl !== getLogoUrl()) setLogoUrl(data.logoUrl);
+        if (data.invoiceAddress && data.invoiceAddress !== getInvoiceAddress()) setInvoiceAddress(data.invoiceAddress);
+        if (data.email && data.email !== getEmail()) setEmail(data.email);
+        if (data.sealUrl !== undefined && data.sealUrl !== getSealUrl()) setSealUrl(data.sealUrl);
       }, (error) => {
         console.error('Shared settings listener error:', error);
       });
@@ -1260,6 +1260,20 @@
     }
 
     await initFirebase();
+
+    if (isFirebaseReady()) {
+      await loadSharedSettings();
+      await loadSharedServices();
+      await loadSharedVehicles();
+      await loadSharedBookings();
+      await loadSharedInvoices();
+      listenToSharedSettings();
+      listenToSharedServices();
+      listenToSharedVehicles();
+      listenToSharedBookings();
+      listenToSharedInvoices();
+    }
+
     const phone = getPhoneNumber();
     const whatsapp = getWhatsAppNumber();
     const logoUrl = getLogoUrl();
@@ -1268,16 +1282,6 @@
     updateLogo(logoUrl);
 
     if (isFirebaseReady()) {
-      listenToSharedSettings();
-      listenToSharedServices();
-      listenToSharedVehicles();
-      listenToSharedBookings();
-      listenToSharedInvoices();
-      await loadSharedSettings();
-      await loadSharedServices();
-      await loadSharedVehicles();
-      await loadSharedBookings();
-      await loadSharedInvoices();
       renderServices();
       renderHomeServices();
       renderVehicles();
