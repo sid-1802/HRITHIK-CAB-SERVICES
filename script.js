@@ -138,6 +138,7 @@
       if (data.logoUrl) setLogoUrl(data.logoUrl);
       if (data.invoiceAddress) setInvoiceAddress(data.invoiceAddress);
       if (data.email) setEmail(data.email);
+      if (data.sealUrl) setSealUrl(data.sealUrl);
     } catch (error) {
       console.error('Unable to load shared settings from Firebase:', error);
     }
@@ -198,6 +199,7 @@
         if (data.logoUrl) setLogoUrl(data.logoUrl);
         if (data.invoiceAddress) setInvoiceAddress(data.invoiceAddress);
         if (data.email) setEmail(data.email);
+        if (data.sealUrl) setSealUrl(data.sealUrl);
       }, (error) => {
         console.error('Shared settings listener error:', error);
       });
@@ -357,6 +359,12 @@
   function setSealUrl(value) {
     const seal = (value || '').trim() || DEFAULT_SEAL;
     localStorage.setItem(SEAL_KEY, seal);
+    const sealToggleBtn = document.getElementById('sealToggleBtn');
+    if (sealToggleBtn) {
+      sealToggleBtn.hidden = !seal;
+      const showSeal = localStorage.getItem('showSeal') !== 'false';
+      sealToggleBtn.textContent = showSeal ? 'Hide Seal' : 'Show Seal';
+    }
     return seal;
   }
 
@@ -600,7 +608,6 @@
       `<div class="printable-area">`,
       `<div class="invoice-header"><div class="invoice-company"><img src="${invoiceLogo}" alt="Hrithik Cab Services logo" class="invoice-logo" onerror="this.onerror=null;this.src='https://kommodo.ai/i/TV6Tgqh5XAHTZ5oA1Nqf';" /><div><h2>Hrithik Cab Services</h2><p>Professional cab invoice</p><p class="invoice-address">Address: ${getInvoiceAddress()}</p></div></div><div class="invoice-meta"><p><strong>Invoice date:</strong> ${formatDate(invoice.invoiceDate)}</p></div></div>`,
       `<div class="invoice-details-row"><div class="invoice-details"><p><strong>Customer:</strong> ${invoice.customerName}</p><p><strong>Phone:</strong> ${invoice.customerPhone}</p><p><strong>Pickup:</strong> ${invoice.pickupLocation}</p><p><strong>Destination:</strong> ${invoice.destinationLocation}</p><p><strong>Vehicle:</strong> ${invoice.vehicleName}</p><p><strong>Vehicle no:</strong> ${invoice.vehicleNumber}</p></div>${sealHtml}</div>`,
-      sealUrl ? `<button type="button" class="seal-toggle-btn" id="sealToggleBtn">${showSeal ? 'Hide Seal' : 'Show Seal'}</button>` : '',
       '<table class="invoice-table">',
       '<thead><tr><th>#</th><th>Description</th><th>Rate</th><th>Total</th></tr></thead>',
       '<tbody>'
@@ -625,11 +632,8 @@
 
     const sealToggleBtn = document.getElementById('sealToggleBtn');
     if (sealToggleBtn) {
-      sealToggleBtn.addEventListener('click', () => {
-        const currentState = localStorage.getItem('showSeal') !== 'false';
-        localStorage.setItem('showSeal', currentState ? 'false' : 'true');
-        renderInvoice(invoice);
-      });
+      sealToggleBtn.textContent = showSeal ? 'Hide Seal' : 'Show Seal';
+      sealToggleBtn.hidden = !sealUrl;
     }
   }
 
@@ -1315,6 +1319,7 @@
     const generateInvoiceButton = document.getElementById('generateInvoiceBtn');
     const sendWhatsappButton = document.getElementById('sendWhatsappBtn');
     const printInvoiceButton = document.getElementById('printInvoiceBtn');
+    const sealToggleBtn = document.getElementById('sealToggleBtn');
 
     if (addInvoiceItemButton) {
       addInvoiceItemButton.addEventListener('click', addInvoiceItemRow);
@@ -1346,6 +1351,22 @@
 
     if (saveInvoiceButton) {
       saveInvoiceButton.addEventListener('click', saveCurrentInvoice);
+    }
+
+    if (sealToggleBtn) {
+      const sealUrl = getSealUrl();
+      const showSeal = localStorage.getItem('showSeal') !== 'false';
+      sealToggleBtn.textContent = showSeal ? 'Hide Seal' : 'Show Seal';
+      sealToggleBtn.hidden = !sealUrl;
+
+      sealToggleBtn.addEventListener('click', () => {
+        const currentState = localStorage.getItem('showSeal') !== 'false';
+        localStorage.setItem('showSeal', currentState ? 'false' : 'true');
+        sealToggleBtn.textContent = currentState ? 'Show Seal' : 'Hide Seal';
+        if (window.currentInvoice) {
+          renderInvoice(window.currentInvoice);
+        }
+      });
     }
 
     if (savedInvoicesList) {
@@ -1784,6 +1805,10 @@
           sealStatus.textContent = nextSeal ? `Current seal URL: ${nextSeal}` : 'Current seal URL: Not set';
         }
         showToast('Seal updated.');
+        const sealToggleBtn = document.getElementById('sealToggleBtn');
+        if (sealToggleBtn) {
+          sealToggleBtn.hidden = !nextSeal;
+        }
         saveSharedSettings({
           phone: getPhoneNumber(),
           whatsapp: getWhatsAppNumber(),
@@ -1803,6 +1828,10 @@
           sealStatus.textContent = nextSeal ? `Current seal URL: ${nextSeal}` : 'Current seal URL: Not set';
         }
         showToast('Seal reset.');
+        const sealToggleBtn = document.getElementById('sealToggleBtn');
+        if (sealToggleBtn) {
+          sealToggleBtn.hidden = !nextSeal;
+        }
         saveSharedSettings({
           phone: getPhoneNumber(),
           whatsapp: getWhatsAppNumber(),
