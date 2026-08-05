@@ -1600,6 +1600,9 @@
     if (input) {
       input.value = phone;
     }
+    if (status) {
+      status.textContent = `Current number: ${phone}`;
+    }
 
     if (emailInput) {
       emailInput.value = getEmail();
@@ -1619,7 +1622,8 @@
           whatsapp: getWhatsAppNumber(),
           logoUrl: getLogoUrl(),
           invoiceAddress: getInvoiceAddress(),
-          email: getEmail()
+          email: getEmail(),
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
@@ -1636,13 +1640,17 @@
           whatsapp: getWhatsAppNumber(),
           logoUrl: getLogoUrl(),
           invoiceAddress: getInvoiceAddress(),
-          email: getEmail()
+          email: getEmail(),
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
 
     if (whatsappInput) {
       whatsappInput.value = whatsapp;
+    }
+    if (whatsappStatus) {
+      whatsappStatus.textContent = `Current WhatsApp: ${whatsapp}`;
     }
 
     const currentInvoiceAddress = getInvoiceAddress();
@@ -1664,7 +1672,8 @@
           whatsapp: nextNumber,
           logoUrl: getLogoUrl(),
           invoiceAddress: getInvoiceAddress(),
-          email: getEmail()
+          email: getEmail(),
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
@@ -1681,7 +1690,8 @@
           whatsapp: getWhatsAppNumber(),
           logoUrl: getLogoUrl(),
           invoiceAddress: getInvoiceAddress(),
-          email: nextEmail
+          email: nextEmail,
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
@@ -1698,7 +1708,8 @@
           whatsapp: getWhatsAppNumber(),
           logoUrl: getLogoUrl(),
           invoiceAddress: nextAddress,
-          email: getEmail()
+          email: getEmail(),
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
@@ -1716,7 +1727,8 @@
           whatsapp: getWhatsAppNumber(),
           logoUrl: getLogoUrl(),
           invoiceAddress: getInvoiceAddress(),
-          email: nextEmail
+          email: nextEmail,
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
@@ -1734,7 +1746,8 @@
           whatsapp: getWhatsAppNumber(),
           logoUrl: getLogoUrl(),
           invoiceAddress: nextAddress,
-          email: getEmail()
+          email: getEmail(),
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
@@ -1746,11 +1759,22 @@
         if (whatsappStatus) {
           whatsappStatus.textContent = `Current WhatsApp: ${nextNumber}`;
         }
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: nextNumber,
+          logoUrl: getLogoUrl(),
+          invoiceAddress: getInvoiceAddress(),
+          email: getEmail(),
+          sealUrl: getSealUrl()
+        }).catch((error) => console.error(error));
       });
     }
 
     if (logoInput) {
       logoInput.value = getLogoUrl();
+    }
+    if (logoStatus) {
+      logoStatus.textContent = `Current logo URL: ${getLogoUrl()}`;
     }
 
     if (sealInput) {
@@ -1775,7 +1799,8 @@
           whatsapp: getWhatsAppNumber(),
           logoUrl: nextLogo,
           invoiceAddress: getInvoiceAddress(),
-          email: getEmail()
+          email: getEmail(),
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
@@ -1793,7 +1818,8 @@
           whatsapp: getWhatsAppNumber(),
           logoUrl: nextLogo,
           invoiceAddress: getInvoiceAddress(),
-          email: getEmail()
+          email: getEmail(),
+          sealUrl: getSealUrl()
         }).catch((error) => console.error(error));
       });
     }
