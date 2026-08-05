@@ -7,11 +7,13 @@
   const EMAIL_KEY = 'hrithikCabEmail';
   const SERVICES_KEY = 'hrithikCabServices';
   const LOGO_KEY = 'hrithikCabLogoUrl';
+  const SEAL_KEY = 'hrithikCabSealUrl';
   const DEFAULT_PHONE = '+919876543210';
   const DEFAULT_WHATSAPP = '+919876543210';
   const DEFAULT_EMAIL = 'info@hrithikcabservices.com';
   const DEFAULT_INVOICE_ADDRESS = '123, Main Street, City Name, State';
   const DEFAULT_LOGO = 'https://kommodo.ai/i/TV6Tgqh5XAHTZ5oA1Nqf';
+  const DEFAULT_SEAL = '';
   const DEFAULT_SERVICES = [
     {
       title: 'Local City Ride',
@@ -348,6 +350,16 @@
     return logo;
   }
 
+  function getSealUrl() {
+    return localStorage.getItem(SEAL_KEY) || DEFAULT_SEAL;
+  }
+
+  function setSealUrl(value) {
+    const seal = (value || '').trim() || DEFAULT_SEAL;
+    localStorage.setItem(SEAL_KEY, seal);
+    return seal;
+  }
+
   function getInvoiceAddress() {
     return localStorage.getItem(INVOICE_ADDRESS_KEY) || DEFAULT_INVOICE_ADDRESS;
   }
@@ -580,10 +592,15 @@
     if (!preview || !actions) return;
 
     const invoiceLogo = getLogoUrl();
+    const sealUrl = getSealUrl();
+    const showSeal = localStorage.getItem('showSeal') !== 'false';
+    const sealHtml = sealUrl && showSeal ? `<div class="invoice-seal-container"><img src="${sealUrl}" alt="Seal" class="invoice-seal" /></div>` : '';
+
     const lines = [
       `<div class="printable-area">`,
       `<div class="invoice-header"><div class="invoice-company"><img src="${invoiceLogo}" alt="Hrithik Cab Services logo" class="invoice-logo" onerror="this.onerror=null;this.src='https://kommodo.ai/i/TV6Tgqh5XAHTZ5oA1Nqf';" /><div><h2>Hrithik Cab Services</h2><p>Professional cab invoice</p><p class="invoice-address">Address: ${getInvoiceAddress()}</p></div></div><div class="invoice-meta"><p><strong>Invoice date:</strong> ${formatDate(invoice.invoiceDate)}</p></div></div>`,
-      `<div class="invoice-details"><p><strong>Customer:</strong> ${invoice.customerName}</p><p><strong>Phone:</strong> ${invoice.customerPhone}</p><p><strong>Pickup:</strong> ${invoice.pickupLocation}</p><p><strong>Destination:</strong> ${invoice.destinationLocation}</p><p><strong>Vehicle:</strong> ${invoice.vehicleName}</p><p><strong>Vehicle no:</strong> ${invoice.vehicleNumber}</p></div>`,
+      `<div class="invoice-details-row"><div class="invoice-details"><p><strong>Customer:</strong> ${invoice.customerName}</p><p><strong>Phone:</strong> ${invoice.customerPhone}</p><p><strong>Pickup:</strong> ${invoice.pickupLocation}</p><p><strong>Destination:</strong> ${invoice.destinationLocation}</p><p><strong>Vehicle:</strong> ${invoice.vehicleName}</p><p><strong>Vehicle no:</strong> ${invoice.vehicleNumber}</p></div>${sealHtml}</div>`,
+      sealUrl ? `<button type="button" class="seal-toggle-btn" id="sealToggleBtn">${showSeal ? 'Hide Seal' : 'Show Seal'}</button>` : '',
       '<table class="invoice-table">',
       '<thead><tr><th>#</th><th>Description</th><th>Rate</th><th>Total</th></tr></thead>',
       '<tbody>'
@@ -605,6 +622,15 @@
     actions.hidden = false;
     preview.classList.add('printable-area');
     window.currentInvoice = invoice;
+
+    const sealToggleBtn = document.getElementById('sealToggleBtn');
+    if (sealToggleBtn) {
+      sealToggleBtn.addEventListener('click', () => {
+        const currentState = localStorage.getItem('showSeal') !== 'false';
+        localStorage.setItem('showSeal', currentState ? 'false' : 'true');
+        renderInvoice(invoice);
+      });
+    }
   }
 
   function createInvoicePdf(invoice) {
@@ -626,6 +652,9 @@
     doc.text(`Invoice date: ${formatDate(invoice.invoiceDate)}`, startX, y);
     y += 24;
 
+    const sealUrl = getSealUrl();
+    const showSeal = localStorage.getItem('showSeal') !== 'false';
+
     doc.setFontSize(12);
     doc.text('Customer', startX, y);
     y += 14;
@@ -641,6 +670,14 @@
     doc.text(`Vehicle: ${invoice.vehicleName}`, startX, y);
     y += 14;
     doc.text(`Vehicle no: ${invoice.vehicleNumber}`, startX, y);
+
+    if (sealUrl && showSeal) {
+      try {
+        doc.addImage(sealUrl, 'PNG', 410, y - 70, 100, 100);
+      } catch (error) {
+        console.warn('Failed to add seal to PDF:', error);
+      }
+    }
     y += 24;
 
     doc.setFontSize(11);
@@ -1534,6 +1571,10 @@
     const saveLogoButton = document.querySelector('#save-logo-btn');
     const resetLogoButton = document.querySelector('#reset-logo-btn');
     const logoStatus = document.querySelector('#logo-status');
+    const sealInput = document.querySelector('#admin-seal-input');
+    const saveSealButton = document.querySelector('#save-seal-btn');
+    const resetSealButton = document.querySelector('#reset-seal-btn');
+    const sealStatus = document.querySelector('#seal-status');
 
     if (input) {
       input.value = phone;
@@ -1691,6 +1732,14 @@
       logoInput.value = getLogoUrl();
     }
 
+    if (sealInput) {
+      sealInput.value = getSealUrl();
+    }
+    if (sealStatus) {
+      const currentSeal = getSealUrl();
+      sealStatus.textContent = currentSeal ? `Current seal URL: ${currentSeal}` : 'Current seal URL: Not set';
+    }
+
     updateEmailLinks(getEmail());
 
     if (saveLogoButton) {
@@ -1724,6 +1773,43 @@
           logoUrl: nextLogo,
           invoiceAddress: getInvoiceAddress(),
           email: getEmail()
+        }).catch((error) => console.error(error));
+      });
+    }
+
+    if (saveSealButton) {
+      saveSealButton.addEventListener('click', () => {
+        const nextSeal = setSealUrl(sealInput ? sealInput.value : '');
+        if (sealStatus) {
+          sealStatus.textContent = nextSeal ? `Current seal URL: ${nextSeal}` : 'Current seal URL: Not set';
+        }
+        showToast('Seal updated.');
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: getLogoUrl(),
+          invoiceAddress: getInvoiceAddress(),
+          email: getEmail(),
+          sealUrl: nextSeal
+        }).catch((error) => console.error(error));
+      });
+    }
+
+    if (resetSealButton) {
+      resetSealButton.addEventListener('click', () => {
+        const nextSeal = setSealUrl(DEFAULT_SEAL);
+        if (sealInput) sealInput.value = nextSeal;
+        if (sealStatus) {
+          sealStatus.textContent = nextSeal ? `Current seal URL: ${nextSeal}` : 'Current seal URL: Not set';
+        }
+        showToast('Seal reset.');
+        saveSharedSettings({
+          phone: getPhoneNumber(),
+          whatsapp: getWhatsAppNumber(),
+          logoUrl: getLogoUrl(),
+          invoiceAddress: getInvoiceAddress(),
+          email: getEmail(),
+          sealUrl: nextSeal
         }).catch((error) => console.error(error));
       });
     }

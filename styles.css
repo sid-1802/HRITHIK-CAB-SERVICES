@@ -553,49 +553,48 @@ img { max-width: 100%; display: block; }
   padding-top: 16px;
 }
 
-  .saved-invoices-list {
-    display: grid;
-    gap: 14px;
-    min-height: 260px;
-  }
+.saved-invoices-list {
+  display: grid;
+  gap: 14px;
+  min-height: 260px;
+}
 
-  .saved-invoice {
-    border: 1px solid #e2e8f0;
-    border-radius: 18px;
-    padding: 18px;
-    background: #f8fbff;
-  }
+.saved-invoice {
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 18px;
+  background: #f8fbff;
+}
 
-  .saved-invoice-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: flex-start;
-  }
+.saved-invoice-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
 
-  .saved-invoice-title {
-    margin: 0;
-    font-weight: 700;
-    color: #0f172a;
-  }
+.saved-invoice-title {
+  margin: 0;
+  font-weight: 700;
+  color: #0f172a;
+}
 
-  .saved-invoice-meta,
-  .saved-invoice-route {
-    margin: 4px 0 0;
-    color: #475569;
-  }
+.saved-invoice-meta,
+.saved-invoice-route {
+  margin: 4px 0 0;
+  color: #475569;
+}
 
-  .saved-invoice-total {
-    font-weight: 800;
-    color: #0f172a;
-  }
+.saved-invoice-total {
+  font-weight: 800;
+  color: #0f172a;
+}
 
-  .saved-invoice-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-  }
+.saved-invoice-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
 }
 
 .invoice-item-row input {
@@ -930,5 +929,54 @@ img { max-width: 100%; display: block; }
   }
   .site-nav a {
     font-size: 0.95rem;
+  }
+}
+
+.invoice-details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.invoice-seal-container {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
+  margin-left: 20px;
+}
+
+.invoice-seal {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+}
+
+.seal-toggle-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.seal-toggle-btn:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+@media print {
+  .seal-toggle-btn {
+    display: none !important;
   }
 }

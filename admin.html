@@ -93,6 +93,17 @@
         </div>
 
         <div class="card admin-settings-card">
+          <h3>Seal URL</h3>
+          <p>Paste a PNG, JPG, or WebP seal link to show it on invoices beside customer details.</p>
+          <div class="admin-phone-row">
+            <input id="admin-seal-input" type="url" placeholder="https://example.com/seal.png" />
+            <button id="save-seal-btn" type="button">Save</button>
+            <button id="reset-seal-btn" type="button" class="secondary-btn">Reset</button>
+          </div>
+          <p id="seal-status" class="status-text">Current seal URL: Not set</p>
+        </div>
+
+        <div class="card admin-settings-card">
           <h3>Saved bookings</h3>
           <p>All customer booking requests saved from the home page will appear here.</p>
           <div id="savedBookingsList" class="saved-bookings-list"></div>
