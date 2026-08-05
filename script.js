@@ -113,6 +113,7 @@
     if (!isFirebaseReady()) return;
     try {
       await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SETTINGS).set(settings, { merge: true });
+      console.info('Shared settings saved to Firebase:', settings);
     } catch (error) {
       console.error('Unable to save shared settings to Firebase:', error);
     }
@@ -123,9 +124,13 @@
 
     try {
       const doc = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SETTINGS).get();
-      if (!doc.exists) return;
+      if (!doc.exists) {
+        console.info('Shared settings document does not exist yet.');
+        return;
+      }
 
       const data = doc.data() || {};
+      console.info('Loaded shared settings from Firebase:', data);
       if (data.phone) setPhoneNumber(data.phone);
       if (data.whatsapp) setWhatsAppNumber(data.whatsapp);
       if (data.logoUrl) setLogoUrl(data.logoUrl);
@@ -141,9 +146,13 @@
 
     try {
       const doc = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SERVICES).get();
-      if (!doc.exists) return;
+      if (!doc.exists) {
+        console.info('Shared services document does not exist yet.');
+        return;
+      }
 
       const data = doc.data() || {};
+      console.info('Loaded shared services from Firebase:', data);
       if (Array.isArray(data.items)) {
         remoteServices = data.items;
         renderServices();
@@ -159,9 +168,13 @@
 
     try {
       const doc = await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_VEHICLES).get();
-      if (!doc.exists) return;
+      if (!doc.exists) {
+        console.info('Shared vehicles document does not exist yet.');
+        return;
+      }
 
       const data = doc.data() || {};
+      console.info('Loaded shared vehicles from Firebase:', data);
       if (Array.isArray(data.items)) {
         remoteVehicles = data.items;
         renderVehicles();
@@ -441,6 +454,10 @@
     localStorage.setItem(ADMIN_SESSION_KEY, value ? 'true' : 'false');
   }
 
+  function isAdminAuthenticated() {
+    return localStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+  }
+
   function isProtectedPage(pageName) {
     return PROTECTED_PAGES.includes(pageName);
   }
@@ -448,39 +465,6 @@
   function getReturnUrlFromQuery() {
     const params = new URLSearchParams(window.location.search);
     return params.get('returnUrl') || 'admin.html';
-  }
-
-  function initLoginPage() {
-    const loginForm = document.getElementById('adminLoginForm');
-    const passwordInput = document.getElementById('adminPasswordInput');
-    const errorMessage = document.getElementById('loginError');
-
-    if (isAdminAuthenticated()) {
-      const returnUrl = getReturnUrlFromQuery();
-      if (!returnUrl.includes('login.html')) {
-        window.location.href = returnUrl;
-        return;
-      }
-    }
-
-    if (!loginForm || !passwordInput || !errorMessage) {
-      return;
-    }
-
-    loginForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const enteredPassword = passwordInput.value.trim();
-      if (enteredPassword === ADMIN_PASSWORD) {
-        setAdminAuthenticated(true);
-        const returnUrl = getReturnUrlFromQuery();
-        window.location.href = returnUrl;
-        return;
-      }
-
-      errorMessage.textContent = 'Incorrect password. Please try again.';
-      passwordInput.value = '';
-      passwordInput.focus();
-    });
   }
 
   function logoutAdmin() {
@@ -942,6 +926,7 @@
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SERVICES).set({ items: services }, { merge: true });
+        console.info('Saved services to Firebase:', services);
       } catch (error) {
         console.error('Unable to save services to Firebase:', error);
       }
@@ -968,6 +953,7 @@
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_VEHICLES).set({ items: vehicles }, { merge: true });
+        console.info('Saved vehicles to Firebase:', vehicles);
       } catch (error) {
         console.error('Unable to save vehicles to Firebase:', error);
       }
