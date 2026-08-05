@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login | Hrithik Cab Services</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page-content">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Admin Login</p>
+        <h2>Enter the password to access admin pages.</h2>
+        <p>Only authorized staff can update services, billing, or admin settings.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="card login-card">
+          <form id="adminLoginForm" class="login-form">
+            <label for="adminPasswordInput">Admin password</label>
+            <input id="adminPasswordInput" type="password" placeholder="Enter password" required />
+            <p id="loginError" class="status-text error-text" aria-live="polite"></p>
+            <div class="modal-actions">
+              <button type="submit" class="button button-primary">Login</button>
+            </div>
+          </form>
+          <p class="small-text">If you are not an admin, return to <a href="index.html">Home</a> or <a href="contact.html">Contact</a>.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Hrithik Cab Services.</p>
+      <p>Admin access only.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

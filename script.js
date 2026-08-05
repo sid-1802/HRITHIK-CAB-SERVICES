@@ -39,6 +39,10 @@
     }
   ];
 
+  const ADMIN_SESSION_KEY = 'hrithikCabAdminAuthenticated';
+  const ADMIN_PASSWORD = 'hrithikadmin123';
+  const PROTECTED_PAGES = ['admin.html', 'services.html', 'billing.html'];
+
   const FIREBASE_CONFIG = {
     apiKey: 'AIzaSyC8NsU1zKhlcWCyM5GnbJ34p4Z2t1q-RrY',
     authDomain: 'hrithik-cabs.firebaseapp.com',
@@ -362,6 +366,126 @@
         element.href = `mailto:${email}`;
       }
     });
+  }
+
+  function hideProtectedNavLinks() {
+    const protectedLinks = document.querySelectorAll('.site-nav a[href="admin.html"], .site-nav a[href="services.html"], .site-nav a[href="billing.html"]');
+    const isAdmin = isAdminAuthenticated();
+    protectedLinks.forEach((link) => {
+      link.hidden = !isAdmin;
+    });
+  }
+
+  function renderAdminLoginLink() {
+    const nav = document.querySelector('.site-nav');
+    if (!nav || isAdminAuthenticated() || nav.querySelector('.login-link')) return;
+
+    const loginLink = document.createElement('a');
+    loginLink.href = 'login.html';
+    loginLink.className = 'login-link';
+    loginLink.textContent = 'Admin login';
+    nav.appendChild(loginLink);
+  }
+
+  function renderAdminLogout() {
+    if (!isAdminAuthenticated()) return;
+
+    const nav = document.querySelector('.site-nav');
+    if (!nav || nav.querySelector('.logout-link')) return;
+
+    const logoutLink = document.createElement('a');
+    logoutLink.href = '#';
+    logoutLink.className = 'logout-link';
+    logoutLink.textContent = 'Logout';
+    logoutLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      logoutAdmin();
+    });
+    nav.appendChild(logoutLink);
+  }
+
+  function initLoginPage() {
+    const loginForm = document.getElementById('adminLoginForm');
+    const passwordInput = document.getElementById('adminPasswordInput');
+    const errorMessage = document.getElementById('loginError');
+
+    if (isAdminAuthenticated()) {
+      const returnUrl = getReturnUrlFromQuery();
+      if (!returnUrl.includes('login.html')) {
+        window.location.href = returnUrl;
+        return;
+      }
+    }
+
+    if (!loginForm || !passwordInput || !errorMessage) {
+      return;
+    }
+
+    loginForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const enteredPassword = passwordInput.value.trim();
+      if (enteredPassword === ADMIN_PASSWORD) {
+        setAdminAuthenticated(true);
+        const returnUrl = getReturnUrlFromQuery();
+        window.location.href = returnUrl;
+        return;
+      }
+
+      errorMessage.textContent = 'Incorrect password. Please try again.';
+      passwordInput.value = '';
+      passwordInput.focus();
+    });
+  }
+
+  function setAdminAuthenticated(value) {
+    localStorage.setItem(ADMIN_SESSION_KEY, value ? 'true' : 'false');
+  }
+
+  function isProtectedPage(pageName) {
+    return PROTECTED_PAGES.includes(pageName);
+  }
+
+  function getReturnUrlFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('returnUrl') || 'admin.html';
+  }
+
+  function initLoginPage() {
+    const loginForm = document.getElementById('adminLoginForm');
+    const passwordInput = document.getElementById('adminPasswordInput');
+    const errorMessage = document.getElementById('loginError');
+
+    if (isAdminAuthenticated()) {
+      const returnUrl = getReturnUrlFromQuery();
+      if (!returnUrl.includes('login.html')) {
+        window.location.href = returnUrl;
+        return;
+      }
+    }
+
+    if (!loginForm || !passwordInput || !errorMessage) {
+      return;
+    }
+
+    loginForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const enteredPassword = passwordInput.value.trim();
+      if (enteredPassword === ADMIN_PASSWORD) {
+        setAdminAuthenticated(true);
+        const returnUrl = getReturnUrlFromQuery();
+        window.location.href = returnUrl;
+        return;
+      }
+
+      errorMessage.textContent = 'Incorrect password. Please try again.';
+      passwordInput.value = '';
+      passwordInput.focus();
+    });
+  }
+
+  function logoutAdmin() {
+    setAdminAuthenticated(false);
+    window.location.href = 'login.html';
   }
 
   function updatePhoneLinks(phone) {
@@ -1044,6 +1168,25 @@
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
+    const currentPage = window.location.pathname.split('/').pop();
+    hideProtectedNavLinks();
+    renderAdminLoginLink();
+
+    if (isProtectedPage(currentPage) && !isAdminAuthenticated()) {
+      const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `login.html?returnUrl=${returnUrl}`;
+      return;
+    }
+
+    if (currentPage === 'login.html') {
+      initLoginPage();
+      return;
+    }
+
+    if (isAdminAuthenticated()) {
+      renderAdminLogout();
+    }
+
     await initFirebase();
     const phone = getPhoneNumber();
     const whatsapp = getWhatsAppNumber();
@@ -1530,6 +1673,8 @@
     getWhatsAppNumber,
     setWhatsAppNumber,
     updatePhoneLinks,
-    updateWhatsAppLinks
+    updateWhatsAppLinks,
+    isAdminAuthenticated,
+    logoutAdmin
   };
 })();

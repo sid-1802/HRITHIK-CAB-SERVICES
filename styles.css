@@ -777,6 +777,31 @@ img { max-width: 100%; display: block; }
   color: #2563eb;
   font-weight: 600;
 }
+.error-text {
+  color: #b91c1c;
+}
+.login-card {
+  max-width: 460px;
+  margin: 0 auto;
+}
+.login-form {
+  display: grid;
+  gap: 16px;
+}
+.login-form input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+}
+.login-form label {
+  font-weight: 700;
+  color: #0f172a;
+}
+.login-form .modal-actions {
+  justify-content: flex-start;
+}
 .contact-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
