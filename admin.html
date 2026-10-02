@@ -32,10 +32,6 @@
         <p class="eyebrow">Admin</p>
         <h2>Manage bookings, drivers, and settings.</h2>
         <p>This dedicated page keeps all admin operations organized in one place.</p>
-        <div class="hero-actions">
-          <a href="index.html#bookingPanel" class="button button-primary">Book a ride</a>
-          <a href="#" class="button button-secondary whatsapp-link">WhatsApp us</a>
-        </div>
       </div>
     </section>
 
@@ -97,14 +93,27 @@
         </div>
 
         <div class="card admin-settings-card">
-          <h3>Seal URL</h3>
-          <p>Paste a PNG, JPG, or WebP seal link to show it on invoices beside customer details.</p>
-          <div class="admin-phone-row">
-            <input id="admin-seal-input" type="url" placeholder="https://example.com/seal.png" />
-            <button id="save-seal-btn" type="button">Save</button>
-            <button id="reset-seal-btn" type="button" class="secondary-btn">Reset</button>
+          <h3>Invoice Seal</h3>
+          <p>You can provide a seal either as an image URL (recommended) or as an HTML snippet containing an &lt;img&gt; tag. Using a direct image URL is the most reliable for embedding into PDFs.</p>
+          <div style="margin-top:12px; display:grid; gap:8px;">
+            <label>
+              Seal URL (recommended)
+              <input id="admin-seal-url-input" type="url" placeholder="https://example.com/seal.png" />
+            </label>
+            <div style="display:flex; gap:8px;">
+              <button id="save-seal-url-btn" type="button" class="button">Save URL</button>
+              <button id="reset-seal-url-btn" type="button" class="secondary-btn">Reset</button>
+            </div>
+            <label style="margin-top:6px;">
+              Or paste seal HTML (fallback)
+              <textarea id="admin-seal-input" rows="3" placeholder="&lt;img src=\"https://...\" alt=\"Seal\" /&gt;"></textarea>
+            </label>
+            <div style="display:flex; gap:8px;">
+              <button id="save-seal-btn" type="button" class="button">Save HTML</button>
+              <button id="reset-seal-btn" type="button" class="secondary-btn">Reset</button>
+            </div>
           </div>
-          <p id="seal-status" class="status-text">Current seal URL: Not set</p>
+          <p id="seal-status" class="status-text">Current seal: (not set)</p>
         </div>
 
         <div class="card admin-settings-card">

@@ -171,6 +171,52 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Handle runtime uploads (POST JSON with base64 data URLs) -> saves to /uploads and returns URLs
+  if (requestUrl.pathname === '/api/upload' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const files = Array.isArray(payload.files) ? payload.files : [];
+        const UPLOADS_DIR = path.join(ROOT_DIR, 'uploads');
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+        const urls = [];
+        files.forEach((f) => {
+          try {
+            const name = f.name || `${Date.now()}`;
+            const data = f.data || '';
+            const match = data.match(/^data:(.+);base64,(.+)$/);
+            let ext = path.extname(name) || '';
+            if (match) {
+              const mime = match[1];
+              const b64 = match[2];
+              if (!ext) {
+                if (mime === 'image/png') ext = '.png';
+                else if (mime === 'image/jpeg') ext = '.jpg';
+                else if (mime === 'image/webp') ext = '.webp';
+                else if (mime === 'image/gif') ext = '.gif';
+                else ext = '.bin';
+              }
+              const safeName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}${ext}`;
+              const outPath = path.join(UPLOADS_DIR, safeName);
+              const buffer = Buffer.from(b64, 'base64');
+              fs.writeFileSync(outPath, buffer);
+              urls.push(`/uploads/${safeName}`);
+            }
+          } catch (err) {
+            console.error('Failed saving upload', err);
+          }
+        });
+        sendJson(res, 200, { ok: true, urls });
+      } catch (err) {
+        console.error('Upload handler error', err);
+        sendJson(res, 400, { ok: false, error: 'Invalid upload payload' });
+      }
+    });
+    return;
+  }
+
   let filePath = requestUrl.pathname === '/' ? path.join(ROOT_DIR, 'index.html') : path.join(ROOT_DIR, decodeURIComponent(requestUrl.pathname));
   if (!filePath.startsWith(ROOT_DIR)) {
     filePath = ROOT_DIR;

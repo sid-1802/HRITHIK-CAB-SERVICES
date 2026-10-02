@@ -553,48 +553,49 @@ img { max-width: 100%; display: block; }
   padding-top: 16px;
 }
 
-.saved-invoices-list {
-  display: grid;
-  gap: 14px;
-  min-height: 260px;
-}
+  .saved-invoices-list {
+    display: grid;
+    gap: 14px;
+    min-height: 260px;
+  }
 
-.saved-invoice {
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  padding: 18px;
-  background: #f8fbff;
-}
+  .saved-invoice {
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 18px;
+    background: #f8fbff;
+  }
 
-.saved-invoice-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-}
+  .saved-invoice-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+  }
 
-.saved-invoice-title {
-  margin: 0;
-  font-weight: 700;
-  color: #0f172a;
-}
+  .saved-invoice-title {
+    margin: 0;
+    font-weight: 700;
+    color: #0f172a;
+  }
 
-.saved-invoice-meta,
-.saved-invoice-route {
-  margin: 4px 0 0;
-  color: #475569;
-}
+  .saved-invoice-meta,
+  .saved-invoice-route {
+    margin: 4px 0 0;
+    color: #475569;
+  }
 
-.saved-invoice-total {
-  font-weight: 800;
-  color: #0f172a;
-}
+  .saved-invoice-total {
+    font-weight: 800;
+    color: #0f172a;
+  }
 
-.saved-invoice-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 14px;
+  .saved-invoice-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
 }
 
 .invoice-item-row input {
@@ -668,6 +669,8 @@ img { max-width: 100%; display: block; }
 }
 
 @media print {
+  @page { size: A4; margin: 8mm; }
+  html, body { height: 100%; }
   body * {
     visibility: hidden;
   }
@@ -682,10 +685,61 @@ img { max-width: 100%; display: block; }
     left: 0;
     top: 0;
     width: 100%;
-    padding: 20px;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 12px;
     background: #fff;
+    transform-origin: top left;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 
+/* Invoice seal styles */
+.printable-area {
+  position: relative; /* allow absolutely positioned seal inside */
+}
+/* Content sits above the seal */
+.printable-area .invoice-content {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+}
+/* Large centered watermark-style seal behind content */
+.invoice-seal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 820px;
+  height: auto;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 1;
+}
+.invoice-seal img { width: 100%; height: auto; object-fit: contain; display: block; }
+
+/* Do not need large reserved bottom padding now since seal is a background watermark */
+.printable-area.has-seal {
+  padding-bottom: 20px !important;
+}
+
+/* Aggressive print reductions to force single page when possible */
+.printable-area {
+  padding: 8px !important;
+  font-size: 10px !important;
+  line-height: 1.05 !important;
+}
+  .invoice-header h2 { font-size: 14px !important; margin-bottom:6px !important; }
+  .invoice-logo { width: 40px !important; height: 40px !important; }
+  .invoice-table th, .invoice-table td { padding: 4px 6px !important; font-size: 9.5px !important; }
+  .invoice-summary { margin-top: 6px !important; }
+  .invoice-note { margin-top: 6px !important; font-size: 9.5px !important; }
+  .invoice-details p { font-size: 0.85rem !important; margin: 2px 0 !important; }
+  .invoice-contact, .invoice-note, .invoice-summary { page-break-inside: avoid; }
+
+  /* Hide non-printable UI in print */
   .site-header,
   .site-nav,
   .site-footer,
@@ -929,37 +983,5 @@ img { max-width: 100%; display: block; }
   }
   .site-nav a {
     font-size: 0.95rem;
-  }
-}
-
-.invoice-details-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 40px;
-  margin-top: 20px;
-}
-
-.invoice-seal-container {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 30px;
-  margin-left: 20px;
-}
-
-.invoice-seal {
-  width: 140px;
-  height: 140px;
-  object-fit: contain;
-  object-position: center;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
-}
-
-@media print {
-  #sealToggleBtn {
-    display: none !important;
   }
 }
