@@ -39,8 +39,7 @@
     }
   ];
 
-  const ADMIN_SESSION_KEY = 'hrithikCabAdminAuthenticated';
-  const ADMIN_PASSWORD = 'hrithikadmin123';
+  const ADMIN_EMAIL = 'sidlok1.sl@gmail.com';
   const PROTECTED_PAGES = ['admin.html', 'services.html', 'billing.html'];
 
   const FIREBASE_CONFIG = {
@@ -61,6 +60,7 @@
   const FIREBASE_COLLECTION = 'sharedData';
 
   let db = null;
+  let auth = null;
   let remoteServices = null;
   let remoteVehicles = null;
   let remoteBookings = null;
@@ -88,12 +88,20 @@
       db = firebase.firestore();
 
       if (firebase.auth) {
-        try {
-          await firebase.auth().signInAnonymously();
-          console.info('Firebase anonymous auth succeeded.');
-        } catch (authError) {
-          console.warn('Firebase anonymous auth failed; continuing without auth:', authError);
-        }
+        auth = firebase.auth();
+        await new Promise((resolve, reject) => {
+          let unsubscribe = () => {};
+          unsubscribe = auth.onAuthStateChanged(
+            () => {
+              unsubscribe();
+              resolve();
+            },
+            (error) => {
+              unsubscribe();
+              reject(error);
+            }
+          );
+        });
       }
 
       console.info('Firebase client initialized.');
@@ -517,6 +525,7 @@
 
   function initLoginPage() {
     const loginForm = document.getElementById('adminLoginForm');
+    const emailInput = document.getElementById('adminEmailInput');
     const passwordInput = document.getElementById('adminPasswordInput');
     const errorMessage = document.getElementById('loginError');
 
@@ -528,32 +537,51 @@
       }
     }
 
-    if (!loginForm || !passwordInput || !errorMessage) {
+    if (!loginForm || !emailInput || !passwordInput || !errorMessage) {
       return;
     }
 
-    loginForm.addEventListener('submit', (event) => {
+    loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const enteredPassword = passwordInput.value.trim();
-      if (enteredPassword === ADMIN_PASSWORD) {
-        setAdminAuthenticated(true);
-        const returnUrl = getReturnUrlFromQuery();
-        window.location.href = returnUrl;
+      if (!auth) {
+        errorMessage.textContent = 'Firebase Authentication is unavailable. Please try again later.';
         return;
       }
 
-      errorMessage.textContent = 'Incorrect password. Please try again.';
-      passwordInput.value = '';
-      passwordInput.focus();
+      try {
+        const credential = await auth.signInWithEmailAndPassword(
+          emailInput.value.trim(),
+          passwordInput.value
+        );
+        if (!credential.user || !credential.user.email ||
+            credential.user.email.toLowerCase() !== ADMIN_EMAIL) {
+          await auth.signOut();
+          errorMessage.textContent = 'Use the administrator email configured for this site.';
+          passwordInput.value = '';
+          return;
+        }
+        if (!credential.user.emailVerified) {
+          await credential.user.sendEmailVerification();
+          await auth.signOut();
+          errorMessage.textContent = 'A verification email was sent. Verify the administrator email, then sign in again.';
+          passwordInput.value = '';
+          return;
+        }
+        const returnUrl = getReturnUrlFromQuery();
+        window.location.href = returnUrl;
+      } catch (error) {
+        console.error('Admin Firebase sign-in failed:', error);
+        errorMessage.textContent = 'Sign-in failed. Check the email and password, and confirm Email/Password sign-in is enabled in Firebase.';
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
     });
   }
 
-  function setAdminAuthenticated(value) {
-    localStorage.setItem(ADMIN_SESSION_KEY, value ? 'true' : 'false');
-  }
-
   function isAdminAuthenticated() {
-    return localStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+    return Boolean(auth && auth.currentUser && auth.currentUser.email &&
+      auth.currentUser.email.toLowerCase() === ADMIN_EMAIL &&
+      auth.currentUser.emailVerified);
   }
 
   function isProtectedPage(pageName) {
@@ -566,8 +594,18 @@
   }
 
   function logoutAdmin() {
-    setAdminAuthenticated(false);
-    window.location.href = 'login.html';
+    if (!auth) {
+      window.location.href = 'login.html';
+      return;
+    }
+    auth.signOut()
+      .then(() => {
+        window.location.href = 'login.html';
+      })
+      .catch((error) => {
+        console.error('Unable to sign out admin:', error);
+        showToast('Unable to sign out. Please try again.');
+      });
   }
 
   function updatePhoneLinks(phone) {
@@ -1180,15 +1218,18 @@
 
   async function saveBookings(bookings) {
     remoteBookings = bookings;
+    let synced = false;
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_BOOKINGS).set({ items: bookings }, { merge: true });
+        synced = true;
       } catch (error) {
         console.error('Unable to save bookings to Firebase:', error);
       }
     }
 
     renderBookings();
+    return synced;
   }
 
   function readStoredList(key, fallback) {
@@ -1443,8 +1484,10 @@
 
     const bookings = await getBookings();
     bookings.unshift(booking);
-    await saveBookings(bookings);
-    showToast(`Saved ${booking.service} for ${booking.name}.`);
+    const synced = await saveBookings(bookings);
+    showToast(synced
+      ? `Saved ${booking.service} for ${booking.name}.`
+      : 'Booking could not be sent to the office. Please call us directly.');
   }
 
   async function callBooking(index) {
@@ -1510,8 +1553,14 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     const currentPage = window.location.pathname.split('/').pop();
+    await initFirebase();
     hideProtectedNavLinks();
     renderAdminLoginLink();
+
+    if (currentPage === 'login.html') {
+      initLoginPage();
+      return;
+    }
 
     if (isProtectedPage(currentPage) && !isAdminAuthenticated()) {
       const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
@@ -1519,16 +1568,10 @@
       return;
     }
 
-    if (currentPage === 'login.html') {
-      initLoginPage();
-      return;
-    }
-
     if (isAdminAuthenticated()) {
       renderAdminLogout();
     }
 
-    await initFirebase();
     const phone = getPhoneNumber();
     const whatsapp = getWhatsAppNumber();
     const logoUrl = getLogoUrl();
@@ -1540,24 +1583,28 @@
       listenToSharedSettings();
       listenToSharedServices();
       listenToSharedVehicles();
-      listenToSharedBookings();
-      listenToSharedInvoices();
       await loadSharedSettings();
       await loadSharedServices();
       await loadSharedVehicles();
-      await loadSharedBookings();
-      await loadSharedInvoices();
       renderServices();
       renderHomeServices();
       renderVehicles();
-      await renderBookings();
-      await renderInvoices();
+      if (isAdminAuthenticated()) {
+        listenToSharedBookings();
+        listenToSharedInvoices();
+        await loadSharedBookings();
+        await loadSharedInvoices();
+        await renderBookings();
+        await renderInvoices();
+      }
     } else {
-      renderInvoices();
       renderServices();
       renderHomeServices();
       renderVehicles();
-      renderBookings().catch((error) => console.error(error));
+      if (isAdminAuthenticated()) {
+        renderInvoices();
+        renderBookings().catch((error) => console.error(error));
+      }
     }
 
     if (document.getElementById('savedBookingsList')) {
@@ -2283,5 +2330,4 @@
   // Expose global aliases so older or cached pages that call global functions still work
   window.isAdminAuthenticated = isAdminAuthenticated;
   window.logoutAdmin = logoutAdmin;
-  window.setAdminAuthenticated = setAdminAuthenticated;
 })();

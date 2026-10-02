@@ -11,7 +11,7 @@
     <section class="hero">
       <div class="container">
         <p class="eyebrow">Admin Login</p>
-        <h2>Enter the password to access admin pages.</h2>
+        <h2>Sign in to access admin pages.</h2>
         <p>Only authorized staff can update services, billing, or admin settings.</p>
       </div>
     </section>
@@ -20,8 +20,10 @@
       <div class="container">
         <div class="card login-card">
           <form id="adminLoginForm" class="login-form">
+            <label for="adminEmailInput">Administrator email</label>
+            <input id="adminEmailInput" type="email" autocomplete="username" placeholder="name@example.com" required />
             <label for="adminPasswordInput">Admin password</label>
-            <input id="adminPasswordInput" type="password" placeholder="Enter password" required />
+            <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="Enter password" required />
             <p id="loginError" class="status-text error-text" aria-live="polite"></p>
             <div class="modal-actions">
               <button type="submit" class="button button-primary">Login</button>
@@ -40,6 +42,9 @@
     </div>
   </footer>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
