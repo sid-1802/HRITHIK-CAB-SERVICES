@@ -96,8 +96,8 @@
         }
       }
 
-      console.info('Firebase initialized. Shared data sync enabled.');
-      showToast('Firebase sync enabled. Changes will sync across devices.');
+      console.info('Firebase client initialized.');
+      console.info('Firestore read/write access is confirmed only after a successful database operation.');
     } catch (error) {
       console.error('Failed to initialize Firebase:', error);
       showToast('Firebase failed to initialize. Check console.');
@@ -184,6 +184,7 @@
       }
     } catch (error) {
       console.error('Unable to load shared services from Firebase:', error);
+      showToast('Services could not load from Firestore. Check Firebase database read permissions.');
     }
   }
 
@@ -216,6 +217,7 @@
       }
     } catch (error) {
       console.error('Unable to load shared vehicles from Firebase:', error);
+      showToast('Vehicles could not load from Firestore. Check Firebase database read permissions.');
     }
   }
 
@@ -256,6 +258,7 @@
         }
       }, (error) => {
         console.error('Shared services listener error:', error);
+        showToast('Live services sync failed. Check Firebase database read permissions.');
       });
   }
 
@@ -278,6 +281,7 @@
         }
       }, (error) => {
         console.error('Shared vehicles listener error:', error);
+        showToast('Live vehicle sync failed. Check Firebase database read permissions.');
       });
   }
 
@@ -1221,10 +1225,12 @@
     const nextServices = Array.isArray(services) ? services : [];
     remoteServices = nextServices;
     writeStoredList(SERVICES_KEY, nextServices);
+    let synced = false;
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_SERVICES).set({ items: nextServices }, { merge: true });
         console.info('Saved services to Firebase:', nextServices);
+        synced = true;
       } catch (error) {
         console.error('Unable to save services to Firebase:', error);
       }
@@ -1232,6 +1238,7 @@
 
     renderServices();
     renderHomeServices();
+    return synced;
   }
 
   // Vehicles storage and rendering (separate from services)
@@ -1250,16 +1257,19 @@
     const nextVehicles = Array.isArray(vehicles) ? vehicles : [];
     remoteVehicles = nextVehicles;
     writeStoredList(VEHICLES_KEY, nextVehicles);
+    let synced = false;
     if (isFirebaseReady()) {
       try {
         await db.collection(FIREBASE_COLLECTION).doc(FIREBASE_DOC_VEHICLES).set({ items: nextVehicles }, { merge: true });
         console.info('Saved vehicles to Firebase:', nextVehicles);
+        synced = true;
       } catch (error) {
         console.error('Unable to save vehicles to Firebase:', error);
       }
     }
 
     renderVehicles();
+    return synced;
   }
 
   function renderVehicles() {
@@ -1772,16 +1782,18 @@
 
         const services = getServices();
         const service = { title, description, price, image };
+        const wasEditing = editingServiceIndex !== null;
 
-        if (editingServiceIndex !== null) {
+        if (wasEditing) {
           services[editingServiceIndex] = service;
-          showToast('Service updated.');
         } else {
           services.push(service);
-          showToast('Service added.');
         }
 
-        await saveServices(services);
+        const synced = await saveServices(services);
+        showToast(synced
+          ? (wasEditing ? 'Service updated and synced for all visitors.' : 'Service added and synced for all visitors.')
+          : 'Saved only in this browser. Firestore sync failed or is unavailable; customers on other devices will not see this service.');
         resetServiceForm();
       });
     }
@@ -1875,12 +1887,15 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ files: filesPayload })
         });
-        if (!resp.ok) throw new Error('Upload failed');
+        if (!resp.ok) throw new Error(`Upload endpoint returned HTTP ${resp.status}`);
         const data = await resp.json();
-        return data.urls || [];
+        if (data.ok !== true || !Array.isArray(data.urls) || data.urls.length === 0) {
+          throw new Error('Upload endpoint did not return image URLs.');
+        }
+        return data.urls;
       } catch (err) {
         console.error('Upload error', err);
-        showToast('Image upload failed.');
+        showToast('Image files need an active upload server. On GitHub Pages, use hosted image URLs instead.');
         return [];
       }
     }
@@ -1927,13 +1942,14 @@
         const vehicleObj = { name, description, images: finalImages };
         if (editIndex) {
           vehicles[Number(editIndex)] = vehicleObj;
-          showToast('Vehicle updated.');
         } else {
           vehicles.push(vehicleObj);
-          showToast('Vehicle uploaded successfully.');
         }
 
-        await saveVehicles(vehicles);
+        const synced = await saveVehicles(vehicles);
+        showToast(synced
+          ? (editIndex ? 'Vehicle updated and synced for all visitors.' : 'Vehicle uploaded and synced for all visitors.')
+          : 'Saved only in this browser. Firestore sync failed or is unavailable; customers on other devices will not see this vehicle.');
         resetVehicleForm();
       });
 
@@ -1969,8 +1985,11 @@
         if (deleteIndex !== null) {
           const services = getServices();
           services.splice(Number(deleteIndex), 1);
-          saveServices(services);
-          showToast('Service deleted.');
+          saveServices(services).then((synced) => {
+            showToast(synced
+              ? 'Service deleted and synced for all visitors.'
+              : 'Deleted only in this browser. Firestore sync failed or is unavailable.');
+          });
         }
       });
     }
@@ -1992,8 +2011,10 @@
           if (deleteIndex !== null) {
             const vehicles = getVehicles();
             vehicles.splice(Number(deleteIndex), 1);
-            await saveVehicles(vehicles);
-            showToast('Vehicle removed.');
+            const synced = await saveVehicles(vehicles);
+            showToast(synced
+              ? 'Vehicle removed and synced for all visitors.'
+              : 'Removed only in this browser. Firestore sync failed or is unavailable.');
             return;
           }
 
